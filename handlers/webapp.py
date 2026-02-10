@@ -12,7 +12,7 @@ db = Database() # Виправлено: прибрано зайвий аргум
 
 # --- ПОСИЛАННЯ ---
 ARCADE_URL = "https://artemkakoder228.github.io/Game/"
-RENDER_URL = "https://rocket-lab.onrender.com"
+RENDER_URL = "https://rocket-lab2.onrender.com"
 
 # ==========================================
 # 1. ОБРОБНИК ДЛЯ "КОСМІЧНИЙ БІЙ" (СТАРА ГРА)

@@ -82,11 +82,13 @@ def investigate():
     module_id = data.get('module_id')
 
     if not family_id or not module_id:
-        return jsonify({'error': 'Missing data'}), 400
+        return jsonify({'error': 'Неповні дані'}), 400
 
-    # Використовуємо існуючий метод CATALOG для перевірки вартості (за потреби)
-    # та метод бази даних для збереження
-    success, message = db.buy_module_upgrade(family_id, {'id': module_id}) 
+    # Використовуємо існуючу логіку покупки з database.py
+    # Важливо: переконайтеся що ціни в CATALOG збігаються з JS
+    module_info = CATALOG.get(module_id, {'id': module_id, 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}})
+    
+    success, message = db.buy_module_upgrade(family_id, module_info)
 
     if success:
         return jsonify({'message': message}), 200

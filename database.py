@@ -117,20 +117,20 @@ class Database:
             )
             family_id = self.cursor.fetchone()[0]
             
-            # ДОДАЄМО ПОЧАТКОВІ МОДУЛІ (Наприклад: Базовий ніс, корпус, двигун, крила)
+            # ДОДАЄМО ПОЧАТКОВІ МОДУЛІ В БД (щоб JS бачив їх як owned)
             starting_modules = ['gu1', 'nc1', 'e1', 'a1']
             for m_id in starting_modules:
                 self.cursor.execute(
                     "INSERT INTO family_upgrades (family_id, module_id) VALUES (%s, %s)",
                     (family_id, m_id)
                 )
-            
+                
             self.cursor.execute(
                 "UPDATE users SET family_id = %s, role = 'captain' WHERE user_id = %s",
                 (family_id, user_id)
             )
             return invite_code
-    
+
     def get_family_resources(self, family_id):
         with self.connection:
             self.cursor.execute("""

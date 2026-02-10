@@ -130,14 +130,32 @@ function updateCanvasPosition() {
 }
 
 // --- INIT ---
-function init() {
+async function init() {
     canvas.style.transformOrigin = '0 0';
-    // 1. Малюємо ноди
+    
+    // --- СИНХРОНІЗАЦІЯ З БАЗОЮ ПЕРЕД МАЛЮВАННЯМ ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyId = urlParams.get('family_id');
+    
+    if (familyId) {
+        try {
+            const response = await fetch(`/api/inventory?family_id=${familyId}`);
+            const data = await response.json();
+            if (data.modules) {
+                const ownedIds = data.modules.map(m => m.id);
+                window.treeNodes.forEach(node => {
+                    if (ownedIds.includes(node.id)) node.owned = true;
+                });
+            }
+        } catch (e) { console.error("DB Sync error:", e); }
+    }
+
+    // Малюємо ноди
     treeNodes.forEach(node => {
         const div = document.createElement('div');
         div.className = 'node';
-        if (node.owned) div.classList.add('owned');
-        div.id = `node-${node.id}`;
+        if (node.owned) div.classList.add('owned', 'researched'); // Додано researched для стилів
+        div.id = node.id; // Змінено на чистий ID для легшого пошуку
         
         // Позиціонування
         div.style.left = node.x + 'px';
@@ -165,24 +183,17 @@ function init() {
         if (node.req) drawLine(node);
     });
 
-    // 2. Центруємо екран на дереві
     centerViewport();
 }
 
 // --- ФУНКЦІЯ ЦЕНТРУВАННЯ ---
 function centerViewport() {
-    // Центр схеми
-    // X: середина між 1000 і 1750 ~ 1375
-    // Y: середина між 1000 і 1900 ~ 1450
     const treeCenterX = 1375; 
     const treeCenterY = 1450;
-
     const screenCenterX = window.innerWidth / 2;
     const screenCenterY = window.innerHeight / 2;
-
     currentX = screenCenterX - treeCenterX;
     currentY = screenCenterY - treeCenterY;
-
     updateCanvasPosition();
 }
 
@@ -192,13 +203,11 @@ function drawLine(node) {
 
     const line = document.createElement('div');
     line.className = 'line';
+    if (node.owned) line.classList.add('highlight'); // Підсвітка лінії, якщо куплено
     line.id = `line-${node.id}`;
 
-    // 🔹 START — права сторона батька
     const startX = parent.x + NODE_WIDTH;
     const startY = parent.y + NODE_HEIGHT / 2;
-
-    // 🔹 END — ліва сторона дитини
     const endX = node.x;
     const endY = node.y + NODE_HEIGHT / 2;
 
@@ -214,12 +223,11 @@ function drawLine(node) {
     canvas.appendChild(line);
 }
 
-// Функції панелі (залишаємо як було)
 function highlightPath(nodeId) {
     document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
     let currentId = nodeId;
     while (currentId) {
-        document.getElementById(`node-${currentId}`)?.classList.add('highlight');
+        document.getElementById(currentId)?.classList.add('highlight'); // Виправлено пошук ID
         document.getElementById(`line-${currentId}`)?.classList.add('highlight');
         const node = treeNodes.find(n => n.id === currentId);
         currentId = node ? node.req : null;
@@ -230,20 +238,24 @@ function openPanel(node) {
     document.getElementById('node-name').innerText = node.name;
     document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
     document.getElementById('node-desc').innerText = node.desc;
+    
+    // Передаємо ID в кнопку для функції дослідження
+    const actionBtn = document.querySelector('.action-btn');
+    actionBtn.onclick = () => investigateModule(node.id);
 
-    // 🖼 Картинка модуля
     const img = document.getElementById('node-image');
     img.src = node.img || 'images/modules/placeholder.png';
 
-    // === ЛОГІКА ВІДОБРАЖЕННЯ ЦІНИ ===
     const costContainer = document.getElementById('node-cost');
     
     if (node.owned) {
         costContainer.innerHTML = '<div class="cost-owned-msg">ВЖЕ ВСТАНОВЛЕНО</div>';
         costContainer.classList.add('visible');
+        actionBtn.textContent = 'В АНГАРІ';
+        actionBtn.classList.add('disabled');
+        actionBtn.disabled = true;
     } else {
         const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
-        
         costContainer.innerHTML = `
             <div class="cost-cell">
                 <span class="cost-icon">🧱</span>
@@ -259,19 +271,9 @@ function openPanel(node) {
             </div>
         `;
         costContainer.classList.add('visible');
-    }
-
-    // 🔘 Кнопка дослідження
-    const btn = document.querySelector('.action-btn');
-
-    if (node.owned) {
-        btn.textContent = 'В АНГАРІ';
-        btn.classList.add('disabled');
-        btn.disabled = true;
-    } else {
-        btn.textContent = 'ДОСЛІДИТИ';
-        btn.classList.remove('disabled');
-        btn.disabled = false;
+        actionBtn.textContent = 'ДОСЛІДИТИ';
+        actionBtn.classList.remove('disabled');
+        actionBtn.disabled = false;
     }
 
     document.getElementById('info-panel').classList.add('active');
@@ -283,62 +285,50 @@ function closePanel() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const backBtn = document.getElementById('dynamic-back-btn');
-    const path = window.location.pathname; // Отримуємо поточну адресу
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyId = urlParams.get('family_id');
     
-    // Об'єкт конфігурації: "де ми є" -> "куди йти"
-    const routes = {
-        'tree_Earth.html': { url: 'index.html', text: 'ГОЛОВНА' },
-        'tree_Moon.html':  { url: 'Moon.html',  text: 'МІСЯЦЬ' },
-        'tree_Mars.html':  { url: 'Mars.html',  text: 'МАРС' },
-        'tree_Jupiter.html': { url: 'Jupiter.html', text: 'ЮПІТЕР' }
-    };
+    // Виправлено пошук кнопки (клас .back-btn як у вашому HTML)
+    const backBtn = document.querySelector('.back-btn'); 
+    const path = window.location.pathname;
+    
+    if (backBtn) {
+        const routes = {
+            'tree_Earth.html': { url: 'index.html', text: 'ГОЛОВНА' },
+            'tree_Moon.html':  { url: 'Moon.html',  text: 'МІСЯЦЬ' },
+            'tree_Mars.html':  { url: 'Mars.html',  text: 'МАРС' },
+            'tree_Jupiter.html': { url: 'Jupiter.html', text: 'ЮПІТЕР' }
+        };
 
-    // Перевіряємо, який файл зараз відкрито
-    for (const [key, route] of Object.entries(routes)) {
-        if (path.includes(key)) {
-            backBtn.href = route.url;
-            backBtn.innerHTML = `<span class="arrow">‹</span> ${route.text}`;
-            break; 
+        for (const [key, route] of Object.entries(routes)) {
+            if (path.includes(key)) {
+                backBtn.href = familyId ? `${route.url}?family_id=${familyId}` : route.url;
+                backBtn.innerHTML = `<span class="arrow">‹</span> ${route.text}`;
+                break; 
+            }
         }
-    }
-    
-    // Якщо сторінка не знайдена в списку, ведемо на index.html за замовчуванням
-    if (backBtn.getAttribute('href') === '#') {
-        backBtn.href = 'index.html';
-        backBtn.innerHTML = `<span class="arrow">‹</span> MENU`;
     }
 });
 
-// --- ЛОГІКА ЗУМУ КОЛЕСОМ ---
+// --- ЛОГІКА ЗУМУ ---
 viewport.addEventListener('wheel', (e) => {
-    e.preventDefault(); // Забороняємо прокрутку сторінки браузером
-
+    e.preventDefault();
     const xs = (e.clientX - currentX) / scale;
     const ys = (e.clientY - currentY) / scale;
-
     const delta = -e.deltaY;
-    
-    // Обмежуємо швидкість зміни, щоб було плавно
     const factor = (delta > 0) ? 1.1 : 0.9;
-    
     let newScale = scale * factor;
-
-    // Обмеження мінімуму і максимуму
     if (newScale < MIN_SCALE) newScale = MIN_SCALE;
     if (newScale > MAX_SCALE) newScale = MAX_SCALE;
-
-    // Математика, щоб зум був у точку курсора (cursor-centered zoom)
     currentX -= xs * (newScale - scale);
     currentY -= ys * (newScale - scale);
     scale = newScale;
-
     updateCanvasPosition();
 }, { passive: false });
 
 async function investigateModule(moduleId) {
     const urlParams = new URLSearchParams(window.location.search);
-    const familyId = urlParams.get('family_id'); // Отримуємо ID сім'ї з URL
+    const familyId = urlParams.get('family_id');
 
     if (!familyId) {
         alert("Помилка: ID сім'ї не знайдено!");
@@ -349,21 +339,20 @@ async function investigateModule(moduleId) {
         const response = await fetch('/api/investigate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                family_id: familyId, 
-                module_id: moduleId 
-            })
+            body: JSON.stringify({ family_id: familyId, module_id: moduleId })
         });
 
         const result = await response.json();
 
         if (response.ok) {
-            // Змінюємо стиль модуля на сторінці
             const moduleElement = document.getElementById(moduleId);
             if (moduleElement) {
-                moduleElement.classList.add('researched');
-                alert("Модуль успішно досліджено!");
+                moduleElement.classList.add('owned', 'researched');
+                const checkStatus = moduleElement.querySelector('.node-status');
+                if (checkStatus) checkStatus.innerHTML = '<span class="checkmark">✔</span>';
             }
+            alert("Модуль успішно досліджено!");
+            location.reload(); // Перезавантаження для оновлення масиву та ліній
         } else {
             alert("Помилка: " + result.error);
         }
@@ -372,45 +361,5 @@ async function investigateModule(moduleId) {
     }
 }
 
-// JS/tree_Earth.js
-
-async function loadResearchedModules() {
-    // 1. Отримуємо family_id з URL-адреси
-    const urlParams = new URLSearchParams(window.location.search);
-    const familyId = urlParams.get('family_id');
-
-    if (!familyId) return;
-
-    try {
-        // 2. Запитуємо інвентар сім'ї у сервера
-        const response = await fetch(`/api/inventory?family_id=${familyId}`);
-        const data = await response.json();
-
-        if (data.modules) {
-            // 3. Проходимо по кожному модулю, який вже є у власності
-            data.modules.forEach(module => {
-                const moduleElement = document.getElementById(module.id);
-                if (moduleElement) {
-                    // Додаємо клас для візуального відображення (зелений колір)
-                    moduleElement.classList.add('researched');
-                    
-                    // Опціонально: змінюємо текст кнопки
-                    const btn = moduleElement.querySelector('.buy-button'); // перевірте назву класу вашої кнопки
-                    if (btn) {
-                        btn.innerText = "Встановлено";
-                        btn.disabled = true;
-                    }
-                }
-            });
-        }
-    } catch (error) {
-        console.error("Помилка завантаження модулів:", error);
-    }
-}
-
-// Викликаємо функцію при завантаженні документа
-document.addEventListener('DOMContentLoaded', loadResearchedModules);
-
-document.addEventListener('DOMContentLoaded', loadResearchedModules);
-
+// Запуск ініціалізації
 window.onload = init;

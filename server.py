@@ -11,14 +11,14 @@ CORS(app)
 db = Database() 
 
 CATALOG = {
-    'gu1': {'name': 'Конус-верхівка', 'type': 'nose', 'tier': 'I', 'desc': 'Базовий обтікач.'},
-    'gu2': {'name': 'Сенсорний шпиль', 'type': 'nose', 'tier': 'II', 'desc': 'З датчиками.'},
-    'nc1': {'name': 'Корпус', 'type': 'body', 'tier': 'I', 'desc': 'Алюмінієвий корпус.'},
-    'h1': {'name': 'Сталевий Корпус', 'type': 'body', 'tier': 'II', 'desc': 'Посилений корпус.'},
-    'e1': {'name': 'Турбіна', 'type': 'engine', 'tier': 'I', 'desc': 'Базовий двигун.'},
-    'e2': {'name': 'Турбо-нагнітач', 'type': 'engine', 'tier': 'II', 'desc': 'Потужна тяга.'},
-    'a1': {'name': 'Надкрилки', 'type': 'fins', 'tier': 'I', 'desc': 'Стабілізація.'},
-    'a2': {'name': 'Активні закрилки', 'type': 'fins', 'tier': 'II', 'desc': 'Маневрування.'}
+    'gu1': {'name': 'Конус-верхівка', 'type': 'nose', 'tier': 'I', 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}},
+    'gu2': {'name': 'Сенсорний шпиль', 'type': 'nose', 'tier': 'II', 'cost': {'coins': 250, 'iron': 500, 'fuel': 100}},
+    'nc1': {'name': 'Корпус', 'type': 'body', 'tier': 'I', 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}},
+    'h1': {'name': 'Сталевий Корпус', 'type': 'body', 'tier': 'II', 'cost': {'coins': 400, 'iron': 800, 'fuel': 50}},
+    'e1': {'name': 'Турбіна', 'type': 'engine', 'tier': 'I', 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}},
+    'e2': {'name': 'Турбо-нагнітач', 'type': 'engine', 'tier': 'II', 'cost': {'coins': 300, 'iron': 600, 'fuel': 150}},
+    'a1': {'name': 'Надкрилки', 'type': 'fins', 'tier': 'I', 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}},
+    'a2': {'name': 'Активні закрилки', 'type': 'fins', 'tier': 'II', 'cost': {'coins': 150, 'iron': 300, 'fuel': 75}}
 }
 
 # --- НОВІ МАРШРУТИ ДЛЯ САЙТУ ---
@@ -77,23 +77,38 @@ def get_inventory():
     
 @app.route('/api/investigate', methods=['POST'])
 def investigate():
-    data = request.json
-    family_id = data.get('family_id')
-    module_id = data.get('module_id')
+    try:
+        data = request.json
+        family_id = data.get('family_id')
+        module_id = data.get('module_id')
 
-    if not family_id or not module_id:
-        return jsonify({'error': 'Неповні дані'}), 400
+        if not family_id or not module_id:
+            return jsonify({'error': 'Неповні дані (відсутній ID сім\'ї або модуля)'}), 400
 
-    # Використовуємо існуючу логіку покупки з database.py
-    # Важливо: переконайтеся що ціни в CATALOG збігаються з JS
-    module_info = CATALOG.get(module_id, {'id': module_id, 'cost': {'coins': 0, 'iron': 0, 'fuel': 0}})
-    
-    success, message = db.buy_module_upgrade(family_id, module_info)
+        # Отримуємо дані модуля з каталогу
+        if module_id not in CATALOG:
+            return jsonify({'error': f'Модуль {module_id} не знайдено в каталозі'}), 404
 
-    if success:
-        return jsonify({'message': message}), 200
-    else:
-        return jsonify({'error': message}), 400
+        module_info = CATALOG[module_id].copy()
+        module_info['id'] = module_id
+        
+        # Додаємо вартість, якщо її немає в каталозі (на основі ваших treeNodes в JS)
+        # Це запобігає KeyError в database.py
+        if 'cost' not in module_info:
+            # Дефолтна вартість для модулів, які не прописані детально
+            module_info['cost'] = {'coins': 100, 'iron': 100, 'fuel': 50}
+
+        # Викликаємо існуючий метод БД
+        success, message = db.buy_module_upgrade(family_id, module_info)
+
+        if success:
+            return jsonify({'message': message}), 200
+        else:
+            return jsonify({'error': message}), 400
+            
+    except Exception as e:
+        print(f"CRITICAL SERVER ERROR: {e}")
+        return jsonify({'error': 'Внутрішня помилка сервера'}), 500
 
 def run_flask():
     # Port 5000 стандартний, Render сам його прокине

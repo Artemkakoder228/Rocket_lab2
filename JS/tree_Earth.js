@@ -372,4 +372,26 @@ async function investigateModule(moduleId) {
     }
 }
 
+async function loadResearchedModules() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyId = urlParams.get('family_id');
+
+    const response = await fetch(`/api/inventory?family_id=${familyId}`);
+    const data = await response.json();
+
+    if (data.modules) {
+        data.modules.forEach(module => {
+            const el = document.getElementById(module.id);
+            if (el) {
+                el.classList.add('researched');
+                // Можна також змінити текст кнопки на "Досліджено"
+                const btn = el.querySelector('button');
+                if (btn) btn.innerText = "Встановлено";
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadResearchedModules);
+
 window.onload = init;

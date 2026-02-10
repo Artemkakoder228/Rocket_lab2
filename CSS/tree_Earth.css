@@ -390,9 +390,9 @@ body, html {
 
 /* Стиль для дослідженого модуля */
 .module-card.researched {
-    border: 2px solid #2ecc71; /* Зелена рамка */
-    background-color: rgba(46, 204, 113, 0.2); /* Світло-зелений фон */
-    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+    border: 2px solid #2ecc71 !important;
+    background: rgba(46, 204, 113, 0.15) !important;
+    box-shadow: 0 0 10px #2ecc71;
 }
 
 .module-card.researched button {

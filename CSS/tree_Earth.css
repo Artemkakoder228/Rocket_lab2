@@ -388,6 +388,17 @@ body, html {
     text-transform: uppercase;
 }
 
+/* Стиль для дослідженого модуля */
+.module-card.researched {
+    border: 2px solid #2ecc71; /* Зелена рамка */
+    background-color: rgba(46, 204, 113, 0.2); /* Світло-зелений фон */
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+}
+
+.module-card.researched button {
+    display: none; /* Ховаємо кнопку після дослідження */
+}
+
 @media (max-width: 1200px) {
     .planet-nav {
         gap: 20px; /* Зменшуємо відстань між кнопками планет */

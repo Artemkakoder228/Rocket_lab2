@@ -336,4 +336,40 @@ viewport.addEventListener('wheel', (e) => {
     updateCanvasPosition();
 }, { passive: false });
 
+async function investigateModule(moduleId) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyId = urlParams.get('family_id'); // Отримуємо ID сім'ї з URL
+
+    if (!familyId) {
+        alert("Помилка: ID сім'ї не знайдено!");
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/investigate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                family_id: familyId, 
+                module_id: moduleId 
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Змінюємо стиль модуля на сторінці
+            const moduleElement = document.getElementById(moduleId);
+            if (moduleElement) {
+                moduleElement.classList.add('researched');
+                alert("Модуль успішно досліджено!");
+            }
+        } else {
+            alert("Помилка: " + result.error);
+        }
+    } catch (error) {
+        console.error("Помилка запиту:", error);
+    }
+}
+
 window.onload = init;

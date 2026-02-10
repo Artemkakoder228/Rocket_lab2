@@ -74,6 +74,24 @@ def get_inventory():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/investigate', methods=['POST'])
+def investigate():
+    data = request.json
+    family_id = data.get('family_id')
+    module_id = data.get('module_id')
+
+    if not family_id or not module_id:
+        return jsonify({'error': 'Missing data'}), 400
+
+    # Використовуємо існуючий метод CATALOG для перевірки вартості (за потреби)
+    # та метод бази даних для збереження
+    success, message = db.buy_module_upgrade(family_id, {'id': module_id}) 
+
+    if success:
+        return jsonify({'message': message}), 200
+    else:
+        return jsonify({'error': message}), 400
 
 def run_flask():
     # Port 5000 стандартний, Render сам його прокине

@@ -1,7 +1,5 @@
 const canvas = document.getElementById('canvas');
 const viewport = document.getElementById('viewport');
-const urlParams = new URLSearchParams(window.location.search);
-window.userFamilyId = urlParams.get('family_id');
 
 // Змінні для позиції
 let currentX = 0; 
@@ -15,11 +13,6 @@ const ZOOM_SPEED = 0.001;
 const NODE_WIDTH = 150;
 const NODE_HEIGHT = 145;
 
-// Змінна для збереження вибраного модуля (щоб знати, що купувати)
-let selectedNode = null;
-
-// --- 1. ОНОВЛЕНІ ДАНІ (Додано rocketKey та level) ---
-// rocketKey має співпадати з ключами в index.html (nose, body, engine, fins)
 window.treeNodes = [
     // --- КАТЕГОРІЯ 1: НІС (NOSE) ---
     {
@@ -110,7 +103,7 @@ window.treeNodes = [
     }
 ];
 
-// --- DRAG LOGIC (Без змін) ---
+// --- DRAG LOGIC ---
 viewport.addEventListener('mousedown', (e) => {
     if (e.target.closest('.node')) return;
     isDragging = true;
@@ -133,53 +126,18 @@ window.addEventListener('mouseup', () => {
 });
 
 function updateCanvasPosition() {
-    // 1. Параметри вашого полотна (з CSS .tree-canvas width/height)
-    const CANVAS_SIZE = 3000; 
-    
-    // 2. Розміри вікна користувача
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    // 3. Розрахунок меж (Borders)
-    // Дозволяємо "заїжджати" за край, але не далі ніж на 500px або пів екрана
-    // min_x: це коли ми тягнемо вліво (бачимо правий край карти)
-    const minX = -CANVAS_SIZE * scale + (viewportWidth * 0.2); // Залишаємо 20% екрана збоку
-    
-    // max_x: це коли ми тягнемо вправо (бачимо лівий край карти)
-    const maxX = viewportWidth * 0.8; // Залишаємо 20% екрана з іншого боку
-
-    const minY = -CANVAS_SIZE * scale + (viewportHeight * 0.2);
-    const maxY = viewportHeight * 0.8;
-
-    // 4. Застосовуємо обмеження (Clamping)
-    if (currentX < minX) currentX = minX;
-    if (currentX > maxX) currentX = maxX;
-    if (currentY < minY) currentY = minY;
-    if (currentY > maxY) currentY = maxY;
-
-    // 5. Застосовуємо трансформацію
     canvas.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
 }
 
-async function syncWithSave() {
-    const res = await fetch(`/api/get_upgrades?family_id=${window.userFamilyId}`);
-    const unlocked = await res.json();
-    treeNodes.forEach(node => {
-        if (unlocked.includes(node.id)) node.owned = true;
-    });
-}
 // --- INIT ---
 function init() {
-    // Спочатку оновлюємо дані з пам'яті
-    syncWithSave();
-
+    canvas.style.transformOrigin = '0 0';
     // 1. Малюємо ноди
     treeNodes.forEach(node => {
         const div = document.createElement('div');
         div.className = 'node';
         if (node.owned) div.classList.add('owned');
         div.id = `node-${node.id}`;
-        canvas.style.transformOrigin = '0 0';
         
         // Позиціонування
         div.style.left = node.x + 'px';
@@ -207,49 +165,24 @@ function init() {
         if (node.req) drawLine(node);
     });
 
-    // 2. Центруємо екран
+    // 2. Центруємо екран на дереві
     centerViewport();
-
-    // 3. --- НОВЕ: Додаємо слухач на кнопку в панелі ---
-    const researchBtn = document.querySelector('.action-btn');
-    if(researchBtn) {
-        researchBtn.addEventListener('click', buyUpgrade);
-    }
 }
 
-// --- ЛОГІКА ПОКУПКИ (НОВЕ) ---
-async function buyUpgrade() {
-    if (!selectedNode || selectedNode.owned) return;
-
-    const res = await fetch('/api/upgrade', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            family_id: window.userFamilyId,
-            module_id: selectedNode.id,
-            cost: selectedNode.cost,
-            req: selectedNode.req
-        })
-    });
-    
-    const result = await res.json();
-    if (result.success) {
-        selectedNode.owned = true;
-        init(); // перемалювати дерево
-        alert(result.message);
-    } else {
-        alert("Помилка: " + result.error);
-    }
-}
-
-
+// --- ФУНКЦІЯ ЦЕНТРУВАННЯ ---
 function centerViewport() {
-    const treeCenterX = 1300; 
-    const treeCenterY = 1500;
+    // Центр схеми
+    // X: середина між 1000 і 1750 ~ 1375
+    // Y: середина між 1000 і 1900 ~ 1450
+    const treeCenterX = 1375; 
+    const treeCenterY = 1450;
+
     const screenCenterX = window.innerWidth / 2;
     const screenCenterY = window.innerHeight / 2;
+
     currentX = screenCenterX - treeCenterX;
     currentY = screenCenterY - treeCenterY;
+
     updateCanvasPosition();
 }
 
@@ -261,15 +194,14 @@ function drawLine(node) {
     line.className = 'line';
     line.id = `line-${node.id}`;
 
-    // Перевіряємо, чи батько куплений, щоб підсвітити лінію (опціонально)
-    if (parent.owned && node.owned) {
-        // line.classList.add('active-line'); // Можна додати в CSS стиль для active-line
-    }
-
+    // 🔹 START — права сторона батька
     const startX = parent.x + NODE_WIDTH;
     const startY = parent.y + NODE_HEIGHT / 2;
+
+    // 🔹 END — ліва сторона дитини
     const endX = node.x;
     const endY = node.y + NODE_HEIGHT / 2;
+
     const dx = endX - startX;
     const dy = endY - startY;
     const dist = Math.sqrt(dx * dx + dy * dy);
@@ -282,6 +214,7 @@ function drawLine(node) {
     canvas.appendChild(line);
 }
 
+// Функції панелі (залишаємо як було)
 function highlightPath(nodeId) {
     document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
     let currentId = nodeId;
@@ -294,13 +227,11 @@ function highlightPath(nodeId) {
 }
 
 function openPanel(node) {
-    selectedNode = node; 
-
-    // Заповнення текстами
     document.getElementById('node-name').innerText = node.name;
     document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
     document.getElementById('node-desc').innerText = node.desc;
-    
+
+    // 🖼 Картинка модуля
     const img = document.getElementById('node-image');
     img.src = node.img || 'images/modules/placeholder.png';
 
@@ -308,21 +239,18 @@ function openPanel(node) {
     const costContainer = document.getElementById('node-cost');
     
     if (node.owned) {
-        // Якщо куплено - пишемо "ВЖЕ ВСТАНОВЛЕНО" або просто ховаємо
         costContainer.innerHTML = '<div class="cost-owned-msg">ВЖЕ ВСТАНОВЛЕНО</div>';
         costContainer.classList.add('visible');
     } else {
-        // Якщо не куплено - малюємо HTML з іконками та цінами
-        // Перевіряємо, чи є об'єкт cost (для безпеки)
         const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
         
         costContainer.innerHTML = `
             <div class="cost-cell">
-                <span class="cost-icon">🔩</span>
+                <span class="cost-icon">🧱</span>
                 <span class="cost-value val-iron">${c.iron}</span>
             </div>
             <div class="cost-cell">
-                <span class="cost-icon">💠</span>
+                <span class="cost-icon">🧪</span>
                 <span class="cost-value val-fuel">${c.fuel}</span>
             </div>
             <div class="cost-cell">
@@ -333,7 +261,7 @@ function openPanel(node) {
         costContainer.classList.add('visible');
     }
 
-    // === КНОПКА ===
+    // 🔘 Кнопка дослідження
     const btn = document.querySelector('.action-btn');
 
     if (node.owned) {
@@ -341,16 +269,9 @@ function openPanel(node) {
         btn.classList.add('disabled');
         btn.disabled = true;
     } else {
-        let parent = treeNodes.find(n => n.id === node.req);
-        if (parent && !parent.owned) {
-            btn.textContent = 'НЕМАЄ ДОСТУПУ';
-            btn.classList.add('disabled');
-            btn.disabled = true;
-        } else {
-            btn.textContent = 'ДОСЛІДИТИ';
-            btn.classList.remove('disabled');
-            btn.disabled = false;
-        }
+        btn.textContent = 'ДОСЛІДИТИ';
+        btn.classList.remove('disabled');
+        btn.disabled = false;
     }
 
     document.getElementById('info-panel').classList.add('active');
@@ -359,7 +280,6 @@ function openPanel(node) {
 function closePanel() {
     document.getElementById('info-panel').classList.remove('active');
     document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
-    selectedNode = null;
 }
 
 document.addEventListener('DOMContentLoaded', () => {

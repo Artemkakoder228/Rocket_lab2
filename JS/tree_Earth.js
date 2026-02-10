@@ -372,25 +372,44 @@ async function investigateModule(moduleId) {
     }
 }
 
+// JS/tree_Earth.js
+
 async function loadResearchedModules() {
+    // 1. Отримуємо family_id з URL-адреси
     const urlParams = new URLSearchParams(window.location.search);
     const familyId = urlParams.get('family_id');
 
-    const response = await fetch(`/api/inventory?family_id=${familyId}`);
-    const data = await response.json();
+    if (!familyId) return;
 
-    if (data.modules) {
-        data.modules.forEach(module => {
-            const el = document.getElementById(module.id);
-            if (el) {
-                el.classList.add('researched');
-                // Можна також змінити текст кнопки на "Досліджено"
-                const btn = el.querySelector('button');
-                if (btn) btn.innerText = "Встановлено";
-            }
-        });
+    try {
+        // 2. Запитуємо інвентар сім'ї у сервера
+        const response = await fetch(`/api/inventory?family_id=${familyId}`);
+        const data = await response.json();
+
+        if (data.modules) {
+            // 3. Проходимо по кожному модулю, який вже є у власності
+            data.modules.forEach(module => {
+                const moduleElement = document.getElementById(module.id);
+                if (moduleElement) {
+                    // Додаємо клас для візуального відображення (зелений колір)
+                    moduleElement.classList.add('researched');
+                    
+                    // Опціонально: змінюємо текст кнопки
+                    const btn = moduleElement.querySelector('.buy-button'); // перевірте назву класу вашої кнопки
+                    if (btn) {
+                        btn.innerText = "Встановлено";
+                        btn.disabled = true;
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Помилка завантаження модулів:", error);
     }
 }
+
+// Викликаємо функцію при завантаженні документа
+document.addEventListener('DOMContentLoaded', loadResearchedModules);
 
 document.addEventListener('DOMContentLoaded', loadResearchedModules);
 

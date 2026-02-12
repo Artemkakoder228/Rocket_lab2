@@ -1,18 +1,18 @@
 const canvas = document.getElementById('canvas');
 const viewport = document.getElementById('viewport');
 
-// Змінні для позиції та масштабу
+// Змінні для позиції
 let currentX = 0; 
 let currentY = 0; 
 let isDragging = false;
 let startX, startY;
-let scale = 1; 
-const MIN_SCALE = 0.3;
-const MAX_SCALE = 3.0;
+let scale = 1;              // Поточний масштаб
+const MIN_SCALE = 0.3;      // Мінімальне зменшення
+const MAX_SCALE = 3.0;      // Максимальне збільшення
+const ZOOM_SPEED = 0.001;
 const NODE_WIDTH = 150;
 const NODE_HEIGHT = 145;
 
-// Масив вузлів (дані про володіння будуть оновлені з БД)
 window.treeNodes = [
     // === ГРУПА 1: КОРПУС ТА ЕНЕРГІЯ ===
     { 
@@ -93,11 +93,41 @@ window.treeNodes = [
     }
 ];
 
-// --- ЗАВАНТАЖЕННЯ ДАНИХ ТА ІНІЦІАЛІЗАЦІЯ ---
-async function startApp() {
+
+// --- DRAG LOGIC ---
+viewport.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.node')) return;
+    isDragging = true;
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+    viewport.style.cursor = 'grabbing';
+});
+
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    updateCanvasPosition();
+});
+
+window.addEventListener('mouseup', () => {
+    isDragging = false;
+    viewport.style.cursor = 'grab';
+});
+
+function updateCanvasPosition() {
+    canvas.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
+}
+
+// --- INIT ---
+async function init() {
+    canvas.style.transformOrigin = '0 0';
+    
+    // --- СИНХРОНІЗАЦІЯ З БАЗОЮ ПЕРЕД МАЛЮВАННЯМ ---
     const urlParams = new URLSearchParams(window.location.search);
     const familyId = urlParams.get('family_id');
-
+    
     if (familyId) {
         try {
             const response = await fetch(`/api/inventory?family_id=${familyId}`);
@@ -108,51 +138,30 @@ async function startApp() {
                     if (ownedIds.includes(node.id)) node.owned = true;
                 });
             }
-        } catch (e) { console.error("Sync error:", e); }
-    }
-    
-    init(); // Малюємо дерево
-    setupNavigation(familyId);
-}
-
-function setupNavigation(familyId) {
-    const backBtn = document.querySelector('.back-btn'); 
-    if (backBtn) {
-        const path = window.location.pathname;
-        let target = { url: 'index.html', text: 'MENU' };
-        if (path.includes('tree_Moon')) target = { url: 'Moon.html', text: 'МІСЯЦЬ' };
-        if (path.includes('tree_Mars')) target = { url: 'Mars.html', text: 'МАРС' };
-        if (path.includes('tree_Jupiter')) target = { url: 'Jupiter.html', text: 'ЮПІТЕР' };
-
-        backBtn.href = familyId ? `${target.url}?family_id=${familyId}` : target.url;
-        backBtn.innerHTML = `<span class="arrow">‹</span> ${target.text}`;
+        } catch (e) { console.error("DB Sync error:", e); }
     }
 
-    document.querySelectorAll('.planet-btn').forEach(btn => {
-        const baseHref = btn.getAttribute('href').split('?')[0];
-        if (familyId) btn.href = `${baseHref}?family_id=${familyId}`;
-    });
-}
-
-function init() {
-    canvas.innerHTML = '';
-    canvas.style.transformOrigin = '0 0';
-
-    window.treeNodes.forEach(node => {
+    // Малюємо ноди
+    treeNodes.forEach(node => {
         const div = document.createElement('div');
-        div.className = 'node' + (node.owned ? ' owned researched' : '');
-        div.id = node.id;
+        div.className = 'node';
+        if (node.owned) div.classList.add('owned', 'researched'); // Додано researched для стилів
+        div.id = node.id; // Змінено на чистий ID для легшого пошуку
+        
+        // Позиціонування
         div.style.left = node.x + 'px';
         div.style.top = node.y + 'px';
 
-        const checkmark = node.owned ? '<span class="checkmark">✔</span>' : '';
+        const checkmarkHTML = node.owned ? '<span class="checkmark">✔</span>' : '';
         const imageSrc = node.img ? node.img : 'images/placeholder_icon.png';
 
         div.innerHTML = `
-            <div class="node-img-box"><img src="${imageSrc}" class="node-icon"></div>
+            <div class="node-img-box">
+                <img src="${imageSrc}" class="node-icon" onerror="this.style.opacity=0">
+            </div>
             <div class="node-tier">TIER ${node.tier}</div>
             <div class="node-title">${node.name}</div>
-            <div class="node-status">${checkmark}</div>
+            <div class="node-status">${checkmarkHTML}</div>
         `;
         
         div.onclick = (e) => {
@@ -161,17 +170,161 @@ function init() {
             openPanel(node);
         };
         canvas.appendChild(div);
+
         if (node.req) drawLine(node);
     });
+
     centerViewport();
 }
 
-// --- ЛОГІКА ДОСЛІДЖЕННЯ ---
+// --- ФУНКЦІЯ ЦЕНТРУВАННЯ ---
+function centerViewport() {
+    const treeCenterX = 1375; 
+    const treeCenterY = 1450;
+    const screenCenterX = window.innerWidth / 2;
+    const screenCenterY = window.innerHeight / 2;
+    currentX = screenCenterX - treeCenterX;
+    currentY = screenCenterY - treeCenterY;
+    updateCanvasPosition();
+}
+
+function drawLine(node) {
+    const parent = treeNodes.find(n => n.id === node.req);
+    if (!parent) return;
+
+    const line = document.createElement('div');
+    line.className = 'line';
+    if (node.owned) line.classList.add('highlight'); // Підсвітка лінії, якщо куплено
+    line.id = `line-${node.id}`;
+
+    const startX = parent.x + NODE_WIDTH;
+    const startY = parent.y + NODE_HEIGHT / 2;
+    const endX = node.x;
+    const endY = node.y + NODE_HEIGHT / 2;
+
+    const dx = endX - startX;
+    const dy = endY - startY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    line.style.width = dist + 'px';
+    line.style.left = startX + 'px';
+    line.style.top = startY + 'px';
+    line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+
+    canvas.appendChild(line);
+}
+
+function highlightPath(nodeId) {
+    document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
+    let currentId = nodeId;
+    while (currentId) {
+        document.getElementById(currentId)?.classList.add('highlight'); // Виправлено пошук ID
+        document.getElementById(`line-${currentId}`)?.classList.add('highlight');
+        const node = treeNodes.find(n => n.id === currentId);
+        currentId = node ? node.req : null;
+    }
+}
+
+function openPanel(node) {
+    document.getElementById('node-name').innerText = node.name;
+    document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
+    document.getElementById('node-desc').innerText = node.desc;
+    
+    // Передаємо ID в кнопку для функції дослідження
+    const actionBtn = document.querySelector('.action-btn');
+    actionBtn.onclick = () => investigateModule(node.id);
+
+    const img = document.getElementById('node-image');
+    img.src = node.img || 'images/modules/placeholder.png';
+
+    const costContainer = document.getElementById('node-cost');
+    
+    if (node.owned) {
+        costContainer.innerHTML = '<div class="cost-owned-msg">ВЖЕ ВСТАНОВЛЕНО</div>';
+        costContainer.classList.add('visible');
+        actionBtn.textContent = 'В АНГАРІ';
+        actionBtn.classList.add('disabled');
+        actionBtn.disabled = true;
+    } else {
+        const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
+        costContainer.innerHTML = `
+            <div class="cost-cell">
+                <span class="cost-icon">🧱</span>
+                <span class="cost-value val-iron">${c.iron}</span>
+            </div>
+            <div class="cost-cell">
+                <span class="cost-icon">🧪</span>
+                <span class="cost-value val-fuel">${c.fuel}</span>
+            </div>
+            <div class="cost-cell">
+                <span class="cost-icon">🪙</span>
+                <span class="cost-value val-coin">${c.coins}</span>
+            </div>
+        `;
+        costContainer.classList.add('visible');
+        actionBtn.textContent = 'ДОСЛІДИТИ';
+        actionBtn.classList.remove('disabled');
+        actionBtn.disabled = false;
+    }
+
+    document.getElementById('info-panel').classList.add('active');
+}
+
+function closePanel() {
+    document.getElementById('info-panel').classList.remove('active');
+    document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const familyId = urlParams.get('family_id');
+    
+    // Виправлено пошук кнопки (клас .back-btn як у вашому HTML)
+    const backBtn = document.querySelector('.back-btn'); 
+    const path = window.location.pathname;
+    
+    if (backBtn) {
+        const routes = {
+            'tree_Earth.html': { url: 'index.html', text: 'ГОЛОВНА' },
+            'tree_Moon.html':  { url: 'Moon.html',  text: 'МІСЯЦЬ' },
+            'tree_Mars.html':  { url: 'Mars.html',  text: 'МАРС' },
+            'tree_Jupiter.html': { url: 'Jupiter.html', text: 'ЮПІТЕР' }
+        };
+
+        for (const [key, route] of Object.entries(routes)) {
+            if (path.includes(key)) {
+                backBtn.href = familyId ? `${route.url}?family_id=${familyId}` : route.url;
+                backBtn.innerHTML = `<span class="arrow">‹</span> ${route.text}`;
+                break; 
+            }
+        }
+    }
+});
+
+// --- ЛОГІКА ЗУМУ ---
+viewport.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const xs = (e.clientX - currentX) / scale;
+    const ys = (e.clientY - currentY) / scale;
+    const delta = -e.deltaY;
+    const factor = (delta > 0) ? 1.1 : 0.9;
+    let newScale = scale * factor;
+    if (newScale < MIN_SCALE) newScale = MIN_SCALE;
+    if (newScale > MAX_SCALE) newScale = MAX_SCALE;
+    currentX -= xs * (newScale - scale);
+    currentY -= ys * (newScale - scale);
+    scale = newScale;
+    updateCanvasPosition();
+}, { passive: false });
+
 async function investigateModule(moduleId) {
     const urlParams = new URLSearchParams(window.location.search);
     const familyId = urlParams.get('family_id');
 
-    if (!familyId) return alert("Помилка: ID сім'ї не знайдено!");
+    if (!familyId) {
+        alert("Помилка: ID сім'ї не знайдено!");
+        return;
+    }
 
     try {
         const response = await fetch('/api/investigate', {
@@ -180,123 +333,24 @@ async function investigateModule(moduleId) {
             body: JSON.stringify({ family_id: familyId, module_id: moduleId })
         });
 
-        // Спершу перевіряємо чи відповідь це JSON
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            throw new TypeError("Сервер повернув помилку 500 або не JSON. Перевірте CATALOG!");
-        }
-
         const result = await response.json();
 
         if (response.ok) {
-            alert("Технологію успішно досліджено!");
-            location.reload(); 
+            const moduleElement = document.getElementById(moduleId);
+            if (moduleElement) {
+                moduleElement.classList.add('owned', 'researched');
+                const checkStatus = moduleElement.querySelector('.node-status');
+                if (checkStatus) checkStatus.innerHTML = '<span class="checkmark">✔</span>';
+            }
+            alert("Модуль успішно досліджено!");
+            location.reload(); // Перезавантаження для оновлення масиву та ліній
         } else {
-            alert("Помилка: " + (result.error || "Невідома помилка"));
+            alert("Помилка: " + result.error);
         }
     } catch (error) {
-        console.error("Fetch error:", error);
-        alert("Критична помилка сервера. Перевірте Logs в Render.");
+        console.error("Помилка запиту:", error);
     }
 }
 
-function openPanel(node) {
-    document.getElementById('node-name').innerText = node.name;
-    document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
-    document.getElementById('node-desc').innerText = node.desc;
-    document.getElementById('node-image').src = node.img || 'images/modules/placeholder.png';
-
-    const costContainer = document.getElementById('node-cost');
-    const btn = document.querySelector('.action-btn');
-
-    btn.onclick = () => investigateModule(node.id);
-
-    if (node.owned) {
-        costContainer.innerHTML = '<div class="cost-owned-msg">ВЖЕ ВСТАНОВЛЕНО</div>';
-        btn.textContent = 'В АНГАРІ';
-        btn.classList.add('disabled');
-        btn.disabled = true;
-    } else {
-        const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
-        costContainer.innerHTML = `
-            <div class="cost-cell"><span>🧱</span><span class="cost-value">${c.iron}</span></div>
-            <div class="cost-cell"><span>🧪</span><span class="cost-value">${c.fuel}</span></div>
-            <div class="cost-cell"><span>🪙</span><span class="cost-value">${c.coins}</span></div>
-        `;
-        btn.textContent = 'ДОСЛІДИТИ';
-        btn.classList.remove('disabled');
-        btn.disabled = false;
-    }
-    document.getElementById('info-panel').classList.add('active');
-}
-
-// --- СТАНДАРТНІ ФУНКЦІЇ (CENTER/DRAG/ZOOM/LINES) ---
-function centerViewport() {
-    currentX = (window.innerWidth / 2) - 1375;
-    currentY = (window.innerHeight / 2) - 1450;
-    updateCanvasPosition();
-}
-
-function updateCanvasPosition() {
-    canvas.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
-}
-
-function drawLine(node) {
-    const parent = window.treeNodes.find(n => n.id === node.req);
-    if (!parent) return;
-    const line = document.createElement('div');
-    line.className = 'line' + (node.owned ? ' highlight' : '');
-    const startX = parent.x + NODE_WIDTH;
-    const startY = parent.y + NODE_HEIGHT / 2;
-    const endX = node.x;
-    const endY = node.y + NODE_HEIGHT / 2;
-    const dx = endX - startX, dy = endY - startY;
-    line.style.width = Math.sqrt(dx * dx + dy * dy) + 'px';
-    line.style.left = startX + 'px';
-    line.style.top = startY + 'px';
-    line.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
-    canvas.appendChild(line);
-}
-
-function highlightPath(nodeId) {
-    document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
-    let curr = nodeId;
-    while (curr) {
-        document.getElementById(curr)?.classList.add('highlight');
-        const n = window.treeNodes.find(x => x.id === curr);
-        curr = n ? n.req : null;
-    }
-}
-
-viewport.addEventListener('mousedown', (e) => {
-    if (e.target.closest('.node')) return;
-    isDragging = true;
-    startX = e.clientX - currentX; startY = e.clientY - currentY;
-});
-window.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    currentX = e.clientX - startX; currentY = e.clientY - startY;
-    updateCanvasPosition();
-});
-window.addEventListener('mouseup', () => isDragging = false);
-
-viewport.addEventListener('wheel', (e) => {
-    e.preventDefault();
-    const factor = (e.deltaY < 0) ? 1.1 : 0.9;
-    let newScale = scale * factor;
-    if (newScale >= MIN_SCALE && newScale <= MAX_SCALE) {
-        const xs = (e.clientX - currentX) / scale;
-        const ys = (e.clientY - currentY) / scale;
-        currentX -= xs * (newScale - scale);
-        currentY -= ys * (newScale - scale);
-        scale = newScale;
-        updateCanvasPosition();
-    }
-}, { passive: false });
-
-function closePanel() {
-    document.getElementById('info-panel').classList.remove('active');
-    document.querySelectorAll('.node, .line').forEach(el => el.classList.remove('highlight'));
-}
-
-document.addEventListener('DOMContentLoaded', startApp);
+// Запуск ініціалізації
+window.onload = init;

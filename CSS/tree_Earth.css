@@ -387,24 +387,6 @@ body, html {
     font-size: 12px;
     text-transform: uppercase;
 }
-/* Підсвітка дослідженого вузла */
-.node.researched {
-    border: 2px solid #2ecc71 !important;
-    background: rgba(46, 204, 113, 0.15) !important;
-    box-shadow: 0 0 15px rgba(46, 204, 113, 0.5) !important;
-}
-
-.node.researched .node-tier {
-    background: #2ecc71 !important;
-    color: #fff !important;
-}
-
-/* Підсвітка ліній для досліджених шляхів */
-.line.highlight {
-    background: #2ecc71 !important;
-    box-shadow: 0 0 8px #2ecc71;
-    z-index: 2;
-}
 
 @media (max-width: 1200px) {
     .planet-nav {

@@ -16,13 +16,13 @@ const NODE_HEIGHT = 145;
 window.treeNodes = [
     // === ГРУПА 1: КОРПУС ТА ЕНЕРГІЯ ===
     { 
-        id: 'g1_1', name: 'Вантажний Відсік', tier: 'I', 
+        id: 'g1_1', name: 'Вантажний Відсік', tier: 'III', 
         desc: 'Базовий модуль для перевезення корисного вантажу.', 
         x: 1000, y: 1000, req: null, owned: true, img: 'images/Korpus.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'g1_2', name: 'Герметизація', tier: 'II', 
+        id: 'g1_2', name: 'Герметизація', tier: 'IV', 
         desc: 'Покращена ізоляція відсіку для захисту вантажу.', 
         x: 1250, y: 1000, req: 'g1_1', owned: false, img: 'images/Korpus.png',
         cost: { iron: 600, fuel: 200, coins: 400 }
@@ -34,13 +34,13 @@ window.treeNodes = [
         cost: { iron: 500, fuel: 150, coins: 500 }
     },
     { 
-        id: 'g1_down', name: 'Сонячні Панелі', tier: 'III', 
+        id: 'g1_down', name: 'Сонячні Панелі', tier: 'V', 
         desc: 'Розкладні фотоелементи для енергії.', 
         x: 1500, y: 1100, req: 'g1_2', owned: false, img: 'images/Bataries.png',
         cost: { iron: 400, fuel: 100, coins: 450 }
     },
     { 
-        id: 'g1_end', name: 'Нові Панелі MK-II', tier: 'IV', 
+        id: 'g1_end', name: 'Нові Панелі MK-II', tier: 'VI', 
         desc: 'Високоефективні панелі подвійної площі.', 
         x: 1750, y: 1100, req: 'g1_down', owned: false, img: 'images/Bataries.png',
         cost: { iron: 300, fuel: 200, coins: 600 }
@@ -48,19 +48,19 @@ window.treeNodes = [
 
     // === ГРУПА 2: ДВИГУНИ ===
     { 
-        id: 'g2_1', name: 'Турбо-Форсаж', tier: 'I', 
+        id: 'g2_1', name: 'Турбо-Форсаж', tier: 'III', 
         desc: 'Система впорскування палива для різкого ривка.', 
         x: 1000, y: 1400, req: null, owned: true, img: 'images/Turbina.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'g2_up', name: 'Покращений Форсаж', tier: 'II', 
+        id: 'g2_up', name: 'Покращений Форсаж', tier: 'IV', 
         desc: 'Оптимізована камера згоряння.', 
         x: 1250, y: 1300, req: 'g2_1', owned: false, img: 'images/Turbina.png',
         cost: { iron: 550, fuel: 350, coins: 700 }
     },
     { 
-        id: 'g2_down', name: 'Бокові Турбіни', tier: 'II', 
+        id: 'g2_down', name: 'Бокові Турбіни', tier: 'III', 
         desc: 'Додаткові маневрові двигуни.', 
         x: 1250, y: 1500, req: 'g2_1', owned: false, img: 'images/Turbina.png',
         cost: { iron: 400, fuel: 250, coins: 500 }
@@ -68,13 +68,13 @@ window.treeNodes = [
 
     // === ГРУПА 3: ЗАХИСТ ТА ЗБРОЯ ===
     { 
-        id: 'g3_a1', name: 'Керамічний Щит', tier: 'I', 
+        id: 'g3_a1', name: 'Керамічний Щит', tier: 'III', 
         desc: 'Термостійке покриття проти тертя.', 
         x: 1000, y: 1700, req: null, owned: true, img: 'images/Nose.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'g3_a2', name: 'Нова Верхівка', tier: 'II', 
+        id: 'g3_a2', name: 'Титановий Конус', tier: 'IV', 
         desc: 'Посилений титановий конус.', 
         x: 1250, y: 1700, req: 'g3_a1', owned: false, img: 'images/Nose.png',
         cost: { iron: 350, fuel: 150, coins: 480 }

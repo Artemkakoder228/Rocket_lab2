@@ -15,32 +15,32 @@ const NODE_HEIGHT = 145;
 
 window.treeNodes = [
     { 
-        id: 'root1', name: 'Сталевий Корпус', tier: 'I', desc: 'Базова основа ракети.', 
+        id: 'root1', name: 'Сталевий Корпус', tier: 'II', desc: 'Базова основа ракети.', 
         x: 1000, y: 1100, req: null, owned: false, img: 'images/Korpus.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'branch1_up1', name: 'Вантажний Відсік', tier: 'II', desc: 'Додатковий модуль.', 
+        id: 'branch1_up1', name: 'Вантажний Відсік', tier: 'III', desc: 'Додатковий модуль.', 
         x: 1300, y: 1000, req: 'root1', owned: false, img: 'images/Korpus.png',
         cost: { iron: 400, fuel: 200, coins: 350 }
     },
     { 
-        id: 'branch1_up2', name: 'Сонячні Панелі', tier: 'III', desc: 'Генерація енергії.', 
+        id: 'branch1_up2', name: 'Сонячні Панелі', tier: 'IV', desc: 'Генерація енергії.', 
         x: 1600, y: 1000, req: 'branch1_up1', owned: false, img: 'images/Bataries.png',
         cost: { iron: 300, fuel: 100, coins: 450 }
     },
     { 
-        id: 'branch1_down1', name: 'Аеро-надкрилки', tier: 'II', desc: 'Стабілізація польоту.', 
+        id: 'branch1_down1', name: 'Аеро-надкрилки', tier: 'III', desc: 'Стабілізація польоту.', 
         x: 1300, y: 1200, req: 'root1', owned: false, img: 'images/Stabilizator.png',
         cost: { iron: 250, fuel: 150, coins: 300 }
     },
     { 
-        id: 'root2', name: 'Турбо-нагнітач', tier: 'I', desc: 'Подвійна система нагнітання.', 
+        id: 'root2', name: 'Турбо-нагнітач', tier: 'II', desc: 'Подвійна система нагнітання.', 
         x: 1000, y: 1550, req: null, owned: false, img: 'images/Turbina.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'branch2_up', name: 'Турбо-Форсаж', tier: 'II', desc: 'Покращена турбіна.', 
+        id: 'branch2_up', name: 'Турбо-Форсаж', tier: 'III', desc: 'Покращена турбіна.', 
         x: 1300, y: 1450, req: 'root2', owned: false, img: 'images/Turbina.png',
         cost: { iron: 500, fuel: 400, coins: 600 }
     },
@@ -50,12 +50,12 @@ window.treeNodes = [
         cost: { iron: 350, fuel: 250, coins: 400 }
     },
     { 
-        id: 'root3', name: 'Сенсорний шпиль', tier: 'I', desc: 'Модернізована верхівка.', 
+        id: 'root3', name: 'Сенсорний шпиль', tier: 'II', desc: 'Модернізована верхівка.', 
         x: 1000, y: 1900, req: null, owned: false, img: 'images/Nose.png',
         cost: { iron: 0, fuel: 0, coins: 0 }
     },
     { 
-        id: 'branch3', name: 'Керамічний Щит', tier: 'II', desc: 'Покращена верхівка.', 
+        id: 'branch3', name: 'Керамічний Щит', tier: 'III', desc: 'Покращена верхівка.', 
         x: 1300, y: 1900, req: 'root3', owned: false, img: 'images/Nose.png',
         cost: { iron: 300, fuel: 100, coins: 380 }
     }
@@ -216,11 +216,11 @@ function openPanel(node) {
         const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
         costContainer.innerHTML = `
             <div class="cost-cell">
-                <span class="cost-icon">🧱</span>
+                <span class="cost-icon">🌑</span>
                 <span class="cost-value val-iron">${c.iron}</span>
             </div>
             <div class="cost-cell">
-                <span class="cost-icon">🧪</span>
+                <span class="cost-icon">⚛️</span>
                 <span class="cost-value val-fuel">${c.fuel}</span>
             </div>
             <div class="cost-cell">

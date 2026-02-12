@@ -258,11 +258,11 @@ function openPanel(node) {
         const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
         costContainer.innerHTML = `
             <div class="cost-cell">
-                <span class="cost-icon">🧱</span>
+                <span class="cost-icon">🔩</span>
                 <span class="cost-value val-iron">${c.iron}</span>
             </div>
             <div class="cost-cell">
-                <span class="cost-icon">🧪</span>
+                <span class="cost-icon">⛽</span>
                 <span class="cost-value val-fuel">${c.fuel}</span>
             </div>
             <div class="cost-cell">

@@ -15,64 +15,64 @@ const NODE_HEIGHT = 145;
 
 window.treeNodes = [
     { 
-        id: 'hull_start', name: 'Герметизація', tier: 'IV', desc: 'Покращена ізоляція відсіку для захисту вантажу.', 
+        id: 'hull_start', name: 'Герметизація', tier: 'IV', desc: 'Покращена ізоляція відсіку для захисту вантажу в атмосфері Юпітера.', 
         x: 1000, y: 1000, req: null, owned: true, img: 'images/Korpus.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { hydrogen: 0, helium: 0, coins: 0 }
     },
     { 
-        id: 'hull_mk2', name: 'Композитний Корпус', tier: 'V', desc: 'Полегшений сплав для обладнання.', 
+        id: 'hull_mk2', name: 'Композитний Корпус', tier: 'V', desc: 'Надміцний сплав, здатний витримати колосальний тиск.', 
         x: 1250, y: 1000, req: 'hull_start', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 700, fuel: 300, coins: 550 }
+        cost: { hydrogen: 3000, helium: 2000, coins: 8000 }
     },
     { 
-        id: 'solar_upg', name: 'Фотоелементи MK-2', tier: 'VII', desc: 'Покращення збору енергії на 50%.', 
+        id: 'solar_upg', name: 'Фотоелементи MK-2', tier: 'VII', desc: 'Уловлювачі слабкого сонячного світла на віддаленій орбіті.', 
         x: 1500, y: 850, req: 'hull_mk2', owned: false, img: 'images/Bataries.png',
-        cost: { iron: 400, fuel: 200, coins: 600 }
+        cost: { hydrogen: 4000, helium: 2500, coins: 10000 }
     },
     { 
-        id: 'solar_max', name: 'Квантові Панелі', tier: 'VIII', desc: 'Найкраща система поглинання світла.', 
+        id: 'solar_max', name: 'Квантові Панелі', tier: 'VIII', desc: 'Пік технологій поглинання енергії в глибокому космосі.', 
         x: 1750, y: 850, req: 'solar_upg', owned: false, img: 'images/Bataries.png',
-        cost: { iron: 200, fuel: 500, coins: 800 }
+        cost: { hydrogen: 6000, helium: 4000, coins: 15000 }
     },
     { 
-        id: 'aux_bay', name: 'Допоміжні Відсіки', tier: 'V', desc: 'Розширення простору для обладнання.', 
+        id: 'aux_bay', name: 'Допоміжні Відсіки', tier: 'V', desc: 'Розширення простору для систем життєзабезпечення.', 
         x: 1500, y: 1150, req: 'hull_mk2', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 600, fuel: 200, coins: 500 }
+        cost: { hydrogen: 3500, helium: 2500, coins: 7500 }
     },
     { 
-        id: 'combat_bay', name: 'Бойовий Модуль', tier: 'VI', desc: 'Броньований відсік з системою наведення.', 
+        id: 'combat_bay', name: 'Бойовий Модуль', tier: 'VI', desc: 'Броньований відсік з автоматичною системою наведення.', 
         x: 1750, y: 1150, req: 'aux_bay', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 800, fuel: 300, coins: 750 }
+        cost: { hydrogen: 5500, helium: 4500, coins: 12000 }
     },
     { 
-        id: 'cannons', name: 'Плазмові Гармати', tier: 'I', desc: 'Важке озброєння для знищення ворогів.', 
+        id: 'cannons', name: 'Плазмові Гармати', tier: 'I', desc: 'Потужна зброя, що використовує стиснений водень Юпітера.', 
         x: 2000, y: 1150, req: 'combat_bay', owned: false, img: 'images/Blasters.png',
-        cost: { iron: 500, fuel: 400, coins: 1000 }
+        cost: { hydrogen: 8000, helium: 6000, coins: 20000 }
     },
     { 
-        id: 'eng_start', name: 'Покращений Форсаж', tier: 'IV', desc: 'Базова оптимізація камери згоряння.', 
+        id: 'eng_start', name: 'Форсаж', tier: 'IV', desc: 'Базова оптимізація двигунів для роботи на водневому паливі.', 
         x: 1000, y: 1500, req: null, owned: true, img: 'images/Turbina.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { hydrogen: 0, helium: 0, coins: 0 }
     },
     { 
-        id: 'eng_ultimate', name: 'Гіпер-Турбіна', tier: 'V', desc: 'Найкраща турбіна.', 
+        id: 'eng_ultimate', name: 'Гіпер-Турбіна', tier: 'V', desc: 'Екстремальна потужність для подолання гравітації гіганта.', 
         x: 1300, y: 1400, req: 'eng_start', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 350, fuel: 500, coins: 900 }
+        cost: { hydrogen: 9000, helium: 7000, coins: 18000 }
     },
     { 
-        id: 'eng_side', name: 'Бокові Рушії', tier: 'IV', desc: 'Покращення маневрових двигунів.', 
+        id: 'eng_side', name: 'Бокові Рушії', tier: 'IV', desc: 'Покращення маневровості в щільних шарах атмосфери.', 
         x: 1300, y: 1600, req: 'eng_start', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 300, fuel: 250, coins: 400 }
+        cost: { hydrogen: 2500, helium: 1500, coins: 7000 }
     },
     { 
-        id: 'nose_start', name: 'Титановий Конус', tier: 'IV', desc: 'Посилений захист від тертя.', 
+        id: 'nose_start', name: 'Титановий Конус', tier: 'IV', desc: 'Посилений ніс для захисту від космічного пилу.', 
         x: 1000, y: 1850, req: null, owned: true, img: 'images/Nose.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { hydrogen: 0, helium: 0, coins: 0 }
     },
     { 
-        id: 'nose_adv', name: 'Аеро-Композит', tier: 'V', desc: 'Новий ніс з сенсорами.', 
+        id: 'nose_adv', name: 'Аеро-Композит', tier: 'V', desc: 'Аеродинамічний обтічник з інтегрованими сенсорами газів.', 
         x: 1300, y: 1850, req: 'nose_start', owned: false, img: 'images/Nose.png',
-        cost: { iron: 250, fuel: 200, coins: 550 }
+        cost: { hydrogen: 4500, helium: 3000, coins: 9000 }
     }
 ];
 

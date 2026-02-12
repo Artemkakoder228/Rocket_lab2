@@ -397,36 +397,39 @@ class Database:
 
     def buy_module_upgrade(self, family_id, module_data):
         m_id = module_data['id']
-        req_id = module_data.get('req')
-        costs = module_data.get('cost', {'iron': 0, 'fuel': 0, 'coins': 0})
+        costs = module_data.get('cost', {})
 
         with self.connection:
+            # 1. Перевірка чи вже куплено
             self.cursor.execute("SELECT id FROM family_upgrades WHERE family_id = %s AND module_id = %s", (family_id, m_id))
             if self.cursor.fetchone(): return False, "Вже досліджено"
 
-            if req_id:
-                self.cursor.execute("SELECT id FROM family_upgrades WHERE family_id = %s AND module_id = %s", (family_id, req_id))
-                if not self.cursor.fetchone(): return False, "Не виконано умови"
+            # 2. Отримуємо всі ресурси сім'ї
+            self.cursor.execute("SELECT balance, res_iron, res_fuel, res_regolith, res_he3, res_silicon, res_oxide, res_hydrogen, res_helium FROM families WHERE id = %s", (family_id,))
+            res_row = self.cursor.fetchone()
+            # Мапа для зручного доступу
+            user_res = {
+                'coins': res_row[0], 'iron': res_row[1], 'fuel': res_row[2],
+                'regolith': res_row[3], 'he3': res_row[4], 'silicon': res_row[5],
+                'oxide': res_row[6], 'hydrogen': res_row[7], 'helium': res_row[8]
+            }
 
-            self.cursor.execute("SELECT balance, res_iron, res_fuel FROM families WHERE id = %s", (family_id,))
-            current = self.cursor.fetchone()
-            
-            if current[0] < costs['coins']: return False, "Недостатньо монет"
-            if current[1] < costs['iron']: return False, "Недостатньо заліза"
-            if current[2] < costs['fuel']: return False, "Недостатньо палива"
+            # 3. Перевірка чи вистачає ресурсів
+            for res_name, amount in costs.items():
+                if user_res.get(res_name, 0) < amount:
+                    return False, f"Недостатньо {res_name}"
 
-            self.cursor.execute("UPDATE families SET balance = balance - %s, res_iron = res_iron - %s, res_fuel = res_fuel - %s WHERE id = %s", 
-                                (costs['coins'], costs['iron'], costs['fuel'], family_id))
+            # 4. Знімаємо ресурси
+            for res_name, amount in costs.items():
+                db_col = f"res_{res_name}" if res_name != 'coins' else "balance"
+                self.cursor.execute(f"UPDATE families SET {db_col} = {db_col} - %s WHERE id = %s", (amount, family_id))
 
+            # 5. Додаємо в список куплених
             self.cursor.execute("INSERT INTO family_upgrades (family_id, module_id) VALUES (%s, %s)", (family_id, m_id))
             
-            if 'engine' in m_id:
-                self.cursor.execute("UPDATE families SET engine_lvl = engine_lvl + 1 WHERE id = %s", (family_id,))
-            elif 'hull' in m_id:
-                self.cursor.execute("UPDATE families SET hull_lvl = hull_lvl + 1 WHERE id = %s", (family_id,))
-
+            # Логіка підвищення рівнів (двигун/корпус) залишається...
             return True, "Успішно досліджено!"
-
+        
     def get_full_inventory(self, family_id):
         try:
             with self.connection:

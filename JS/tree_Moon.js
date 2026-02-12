@@ -15,49 +15,49 @@ const NODE_HEIGHT = 145;
 
 window.treeNodes = [
     { 
-        id: 'root1', name: 'Сталевий Корпус', tier: 'II', desc: 'Базова основа ракети.', 
+        id: 'root1', name: 'Сталевий Корпус', tier: 'II', desc: 'Базова основа ракети, адаптована для місячних умов.', 
         x: 1000, y: 1100, req: null, owned: false, img: 'images/Korpus.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { regolith: 0, he3: 0, coins: 0 }
     },
     { 
-        id: 'branch1_up1', name: 'Вантажний Відсік', tier: 'III', desc: 'Додатковий модуль.', 
+        id: 'branch1_up1', name: 'Вантажний Відсік', tier: 'III', desc: 'Додатковий модуль для транспортування видобутого реголіту.', 
         x: 1300, y: 1000, req: 'root1', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 400, fuel: 200, coins: 350 }
+        cost: { regolith: 500, he3: 200, coins: 800 }
     },
     { 
-        id: 'branch1_up2', name: 'Сонячні Панелі', tier: 'IV', desc: 'Генерація енергії.', 
+        id: 'branch1_up2', name: 'Сонячні Панелі', tier: 'IV', desc: 'Ефективна генерація енергії в умовах відсутності атмосфери.', 
         x: 1600, y: 1000, req: 'branch1_up1', owned: false, img: 'images/Bataries.png',
-        cost: { iron: 300, fuel: 100, coins: 450 }
+        cost: { regolith: 700, he3: 400, coins: 1200 }
     },
     { 
-        id: 'branch1_down1', name: 'Аеро-надкрилки', tier: 'III', desc: 'Стабілізація польоту.', 
+        id: 'branch1_down1', name: 'Аеро-надкрилки', tier: 'III', desc: 'Стабілізація для маневрування на низькій навколомісячній орбіті.', 
         x: 1300, y: 1200, req: 'root1', owned: false, img: 'images/Stabilizator.png',
-        cost: { iron: 250, fuel: 150, coins: 300 }
+        cost: { regolith: 400, he3: 150, coins: 900 }
     },
     { 
-        id: 'root2', name: 'Турбо-нагнітач', tier: 'II', desc: 'Подвійна система нагнітання.', 
+        id: 'root2', name: 'Турбо-нагнітач', tier: 'II', desc: 'Подвійна система нагнітання для роботи на суміші гелію.', 
         x: 1000, y: 1550, req: null, owned: false, img: 'images/Turbina.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { regolith: 0, he3: 0, coins: 0 }
     },
     { 
-        id: 'branch2_up', name: 'Турбо-Форсаж', tier: 'III', desc: 'Покращена турбіна.', 
+        id: 'branch2_up', name: 'Турбо-Форсаж', tier: 'III', desc: 'Покращена турбіна для швидкого зльоту з поверхні Місяця.', 
         x: 1300, y: 1450, req: 'root2', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 500, fuel: 400, coins: 600 }
+        cost: { regolith: 800, he3: 600, coins: 1500 }
     },
     { 
-        id: 'branch2_down', name: 'Бокові Рушії', tier: 'II', desc: 'Маневрені турбіни.', 
+        id: 'branch2_down', name: 'Бокові Рушії', tier: 'II', desc: 'Маневрені турбіни для точної посадки в кратери.', 
         x: 1300, y: 1650, req: 'root2', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 350, fuel: 250, coins: 400 }
+        cost: { regolith: 600, he3: 400, coins: 1000 }
     },
     { 
-        id: 'root3', name: 'Сенсорний шпиль', tier: 'II', desc: 'Модернізована верхівка.', 
+        id: 'root3', name: 'Сенсорний шпиль', tier: 'II', desc: 'Модернізована верхівка з датчиками космічного випромінювання.', 
         x: 1000, y: 1900, req: null, owned: false, img: 'images/Nose.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { regolith: 0, he3: 0, coins: 0 }
     },
     { 
-        id: 'branch3', name: 'Керамічний Щит', tier: 'III', desc: 'Покращена верхівка.', 
+        id: 'branch3', name: 'Керамічний Щит', tier: 'III', desc: 'Захист верхівки від мікрометеоритів та місячного пилу.', 
         x: 1300, y: 1900, req: 'root3', owned: false, img: 'images/Nose.png',
-        cost: { iron: 300, fuel: 100, coins: 380 }
+        cost: { regolith: 500, he3: 300, coins: 1100 }
     }
 ];
 

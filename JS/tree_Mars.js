@@ -17,79 +17,79 @@ window.treeNodes = [
     // === ГРУПА 1: КОРПУС ТА ЕНЕРГІЯ ===
     { 
         id: 'g1_1', name: 'Вантажний Відсік', tier: 'III', 
-        desc: 'Базовий модуль для перевезення корисного вантажу.', 
+        desc: 'Базовий модуль для перевезення марсіанських мінералів.', 
         x: 1000, y: 1000, req: null, owned: true, img: 'images/Korpus.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { silicon: 0, oxide: 0, coins: 0 }
     },
     { 
         id: 'g1_2', name: 'Герметизація', tier: 'IV', 
-        desc: 'Покращена ізоляція відсіку для захисту вантажу.', 
+        desc: 'Посилена ізоляція для захисту від піщаних бурь та низького тиску.', 
         x: 1250, y: 1000, req: 'g1_1', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 600, fuel: 200, coins: 400 }
+        cost: { silicon: 900, oxide: 500, coins: 2500 }
     },
     { 
         id: 'g1_up', name: 'Панель Оновлення', tier: 'III', 
-        desc: 'Система розподілу енергії для нових модулів.', 
+        desc: 'Система управління живленням для колоніальних модулів.', 
         x: 1500, y: 900, req: 'g1_2', owned: false, img: 'images/Korpus.png',
-        cost: { iron: 500, fuel: 150, coins: 500 }
+        cost: { silicon: 1200, oxide: 800, coins: 3500 }
     },
     { 
         id: 'g1_down', name: 'Сонячні Панелі', tier: 'V', 
-        desc: 'Розкладні фотоелементи для енергії.', 
+        desc: 'Фотоелементи, адаптовані до спектру сонячного світла на Марсі.', 
         x: 1500, y: 1100, req: 'g1_2', owned: false, img: 'images/Bataries.png',
-        cost: { iron: 400, fuel: 100, coins: 450 }
+        cost: { silicon: 1000, oxide: 600, coins: 3000 }
     },
     { 
         id: 'g1_end', name: 'Нові Панелі MK-II', tier: 'VI', 
-        desc: 'Високоефективні панелі подвійної площі.', 
+        desc: 'Високоефективні панелі з системою самоочищення від пилу.', 
         x: 1750, y: 1100, req: 'g1_down', owned: false, img: 'images/Bataries.png',
-        cost: { iron: 300, fuel: 200, coins: 600 }
+        cost: { silicon: 1500, oxide: 1000, coins: 5000 }
     },
 
     // === ГРУПА 2: ДВИГУНИ ===
     { 
         id: 'g2_1', name: 'Турбо-Форсаж', tier: 'III', 
-        desc: 'Система впорскування палива для різкого ривка.', 
+        desc: 'Система впорскування для прискорення в розрідженій атмосфері.', 
         x: 1000, y: 1400, req: null, owned: true, img: 'images/Turbina.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { silicon: 0, oxide: 0, coins: 0 }
     },
     { 
         id: 'g2_up', name: 'Покращений Форсаж', tier: 'IV', 
-        desc: 'Оптимізована камера згоряння.', 
+        desc: 'Оптимізована камера згоряння на кремнієвих присадках.', 
         x: 1250, y: 1300, req: 'g2_1', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 550, fuel: 350, coins: 700 }
+        cost: { silicon: 1800, oxide: 1200, coins: 4500 }
     },
     { 
         id: 'g2_down', name: 'Бокові Турбіни', tier: 'III', 
-        desc: 'Додаткові маневрові двигуни.', 
+        desc: 'Додаткові маневрові двигуни для стабілізації в бурях.', 
         x: 1250, y: 1500, req: 'g2_1', owned: false, img: 'images/Turbina.png',
-        cost: { iron: 400, fuel: 250, coins: 500 }
+        cost: { silicon: 1200, oxide: 800, coins: 3200 }
     },
 
     // === ГРУПА 3: ЗАХИСТ ТА ЗБРОЯ ===
     { 
         id: 'g3_a1', name: 'Керамічний Щит', tier: 'III', 
-        desc: 'Термостійке покриття проти тертя.', 
+        desc: 'Термостійке покриття, стійке до абразивного впливу пилу.', 
         x: 1000, y: 1700, req: null, owned: true, img: 'images/Nose.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { silicon: 0, oxide: 0, coins: 0 }
     },
     { 
         id: 'g3_a2', name: 'Титановий Конус', tier: 'IV', 
-        desc: 'Посилений титановий конус.', 
+        desc: 'Посилений конус для захисту при вході в атмосферу.', 
         x: 1250, y: 1700, req: 'g3_a1', owned: false, img: 'images/Nose.png',
-        cost: { iron: 350, fuel: 150, coins: 480 }
+        cost: { silicon: 1100, oxide: 600, coins: 2800 }
     },
     { 
         id: 'g3_b1', name: 'Бластер', tier: 'I', 
-        desc: 'Лазер для знищення астероїдів.', 
+        desc: 'Стандартний лазер для розчищення шляху від метеоритів.', 
         x: 1000, y: 1900, req: null, owned: true, img: 'images/Blasters.png',
-        cost: { iron: 0, fuel: 0, coins: 0 }
+        cost: { silicon: 0, oxide: 0, coins: 0 }
     },
     { 
         id: 'g3_b2', name: 'Покращений Бластер', tier: 'II', 
-        desc: 'Скорострільна плазмова гармата.', 
+        desc: 'Потужна гармата для захисту марсіанських конвоїв.', 
         x: 1250, y: 1900, req: 'g3_b1', owned: false, img: 'images/Blasters.png',
-        cost: { iron: 450, fuel: 300, coins: 700 }
+        cost: { silicon: 2000, oxide: 1500, coins: 5000 }
     }
 ];
 

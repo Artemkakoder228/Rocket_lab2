@@ -197,7 +197,6 @@ function openPanel(node) {
     document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
     document.getElementById('node-desc').innerText = node.desc;
     
-    // Передаємо ID в кнопку для функції дослідження
     const actionBtn = document.querySelector('.action-btn');
     actionBtn.onclick = () => investigateModule(node.id);
 
@@ -213,19 +212,29 @@ function openPanel(node) {
         actionBtn.classList.add('disabled');
         actionBtn.disabled = true;
     } else {
-        const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
+        const c = node.cost || {};
+        
+        // Визначаємо, які ресурси відображати (Земля або Місяць)
+        const isMoon = c.regolith !== undefined;
+        
+        const res1Icon = isMoon ? '🌑' : '⚙️'; // Реголіт або Залізо
+        const res1Value = isMoon ? c.regolith : c.iron;
+        
+        const res2Icon = isMoon ? '🧪' : '⚛️'; // Гелій-3 або Паливо
+        const res2Value = isMoon ? c.he3 : c.fuel;
+
         costContainer.innerHTML = `
             <div class="cost-cell">
-                <span class="cost-icon">🌑</span>
-                <span class="cost-value val-iron">${c.iron}</span>
+                <span class="cost-icon">${res1Icon}</span>
+                <span class="cost-value">${res1Value || 0}</span>
             </div>
             <div class="cost-cell">
-                <span class="cost-icon">⚛️</span>
-                <span class="cost-value val-fuel">${c.fuel}</span>
+                <span class="cost-icon">${res2Icon}</span>
+                <span class="cost-value">${res2Value || 0}</span>
             </div>
             <div class="cost-cell">
                 <span class="cost-icon">🪙</span>
-                <span class="cost-value val-coin">${c.coins}</span>
+                <span class="cost-value">${c.coins || 0}</span>
             </div>
         `;
         costContainer.classList.add('visible');

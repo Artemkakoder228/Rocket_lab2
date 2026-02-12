@@ -120,7 +120,8 @@ def get_inventory():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': str(e)}), 500
-    
+
+
 @app.route('/api/investigate', methods=['POST'])
 def investigate():
     try:

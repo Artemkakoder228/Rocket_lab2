@@ -212,7 +212,6 @@ function openPanel(node) {
     document.getElementById('node-tier').innerText = `TIER ${node.tier}`;
     document.getElementById('node-desc').innerText = node.desc;
     
-    // Передаємо ID в кнопку для функції дослідження
     const actionBtn = document.querySelector('.action-btn');
     actionBtn.onclick = () => investigateModule(node.id);
 
@@ -228,19 +227,26 @@ function openPanel(node) {
         actionBtn.classList.add('disabled');
         actionBtn.disabled = true;
     } else {
-        const c = node.cost || { iron: 0, fuel: 0, coins: 0 };
+        const c = node.cost || {};
+        
+        // Специфічні ресурси для Юпітера
+        // Якщо hydrogen або helium відсутні, код не поверне undefined, а покаже 0
+        const hydrogenVal = c.hydrogen !== undefined ? c.hydrogen : 0;
+        const heliumVal = c.helium !== undefined ? c.helium : 0;
+        const coinsVal = c.coins || 0;
+
         costContainer.innerHTML = `
             <div class="cost-cell">
                 <span class="cost-icon">☁️</span>
-                <span class="cost-value val-iron">${c.iron}</span>
+                <span class="cost-value">${hydrogenVal}</span>
             </div>
             <div class="cost-cell">
                 <span class="cost-icon">🎈</span>
-                <span class="cost-value val-fuel">${c.fuel}</span>
+                <span class="cost-value">${heliumVal}</span>
             </div>
             <div class="cost-cell">
                 <span class="cost-icon">🪙</span>
-                <span class="cost-value val-coin">${c.coins}</span>
+                <span class="cost-value">${coinsVal}</span>
             </div>
         `;
         costContainer.classList.add('visible');

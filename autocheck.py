@@ -54,7 +54,7 @@ async def check_upg(bot):
         
         # 2. Надсилаємо сповіщення
         await notify(bot, fid, "🏭 **БУДІВНИЦТВО ЗАВЕРШЕНО!**\nШахту успішно модернізовано.")
-
+# autocheck.py
 
 async def check_mis(bot):
     missions = db.get_expired_missions()
@@ -62,33 +62,51 @@ async def check_mis(bot):
         fid, mid, lid, planet = row
         db.clear_mission_timer(fid)
         
-        m_data = db.get_mission_by_id(mid)
-        # Припустимо, req_stat_type це індекс 12, а req_stat_value індекс 13 (перевірте порядок у DB)
-        req_type = m_data[12]
-        req_val = m_data[13]
-        reward = m_data[4]
+        m = db.get_mission_by_id(mid)
+        if not m:
+            continue
+
+        # Індекси з бази: m[12] - тип стату, m[13] - значення
+        # (Переконайтеся, що після запуску init_missions.py ці колонки є)
+        try:
+            req_type = m[12] 
+            req_val = m[13]
+        except:
+            req_type = 'speed'
+            req_val = 0
 
         ship_stats = db.get_ship_total_stats(fid)
         current_val = ship_stats.get(req_type, 0)
         
         diff = req_val - current_val
         success = True
-        
-        if diff > 0:
-            # Логіка ризику: якщо не вистачає статів
-            fail_chance = 0
-            if diff <= 50: fail_chance = 20
-            elif diff <= 100: fail_chance = 50
-            else: fail_chance = 90 # Провал, якщо різниця > 100
+        fail_msg = ""
 
+        # ЛОГІКА РИЗИКУ
+        if diff > 0:
+            if diff >= 100:
+                fail_chance = 90  # Майже гарантований провал
+            elif diff >= 50:
+                fail_chance = 50  # 50/50
+            else:
+                fail_chance = 20  # Невеликий ризик
+            
             if random.randint(1, 100) <= fail_chance:
                 success = False
+                fail_msg = f"\n⚠️ Недостатньо потужності: **{req_type}** {current_val}/{req_val}. Корабель не витримав навантаження."
 
         if success:
-            db.update_balance(fid, reward)
-            msg = f"✅ **МІСІЯ УСПІШНА!**\n💰 Нагорода: {reward} монет."
-            # ... логіка відкриття планет
+            db.update_balance(fid, m[4])
+            msg = f"✅ **МІСІЯ ЗАВЕРШЕНА!**\n💰 Прибуток: **{m[4]}**"
+
+            # Перевірка на боса та відкриття нових планет
+            if m[6] and PLANET_NEXT.get(m[5]):
+                next_p = PLANET_NEXT[m[5]]
+                unlocked = db.get_unlocked_planets(fid)
+                if next_p not in unlocked:
+                    db.unlock_planet(fid, next_p)
+                    msg += f"\n\n🎉 **ВІДКРИТО НОВИЙ СЕКТОР: {next_p}!**"
         else:
-            msg = f"💥 **КАТАСТРОФА!**\nКорабель не витримав навантаження ({req_type}: {current_val}/{req_val}). Місію провалено."
-        
+            msg = f"💥 **МІСІЯ ПРОВАЛЕНА!**{fail_msg}"
+
         await notify(bot, fid, msg)

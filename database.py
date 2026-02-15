@@ -201,15 +201,12 @@ class Database:
                 self.cursor.execute("INSERT INTO users (user_id, username) VALUES (%s, %s)", (user_id, username))
 
     def get_ship_total_stats(self, family_id):
-        """Підраховує сумарні характеристики всіх куплених модулів сім'ї"""
         with self.connection:
             self.cursor.execute("SELECT module_id FROM family_upgrades WHERE family_id = %s", (family_id,))
             owned_ids = [row[0] for row in self.cursor.fetchall()]
-
-            # Початкові характеристики (можна змінити)
+            
             total = {"speed": 0, "armor": 0, "aerodynamics": 0, "handling": 0, "damage": 0}
-
-            # Імпортуємо CATALOG (переконайтеся, що шлях правильний)
+            
             from config import CATALOG 
             for m_id in owned_ids:
                 if m_id in CATALOG:
@@ -264,12 +261,12 @@ class Database:
             query = f"UPDATE families SET {upgrade_type} = {upgrade_type} + 1 WHERE id = %s"
             self.cursor.execute(query, (family_id,))
 
-    def add_mission(self, name, description, difficulty, reward, planet, is_boss, cost_money=0, req_res=None, req_amt=0, flight_time=10, pirate_risk=10):
+    def add_mission(self, name, description, difficulty, reward, planet, is_boss, cost_money=0, req_res=None, req_amt=0, flight_time=10, pirate_risk=10, req_stat_type='speed', req_stat_value=0):
         with self.connection:
             self.cursor.execute("""
-                INSERT INTO missions (name, description, difficulty, reward, planet, is_boss_mission, cost_money, req_res_name, req_res_amount, flight_time, pirate_risk) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (name, description, difficulty, reward, planet, is_boss, cost_money, req_res, req_amt, flight_time, pirate_risk))
+                INSERT INTO missions (name, description, difficulty, reward, planet, is_boss_mission, cost_money, req_res_name, req_res_amount, flight_time, pirate_risk, req_stat_type, req_stat_value) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (name, description, difficulty, reward, planet, is_boss, cost_money, req_res, req_amt, flight_time, pirate_risk,req_stat_type,req_stat_value))
 
     def get_missions_by_planet(self, planet_name):
         with self.connection:

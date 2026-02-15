@@ -204,9 +204,9 @@ class Database:
         with self.connection:
             self.cursor.execute("SELECT module_id FROM family_upgrades WHERE family_id = %s", (family_id,))
             owned_ids = [row[0] for row in self.cursor.fetchall()]
-            
+
             total = {"speed": 0, "armor": 0, "aerodynamics": 0, "handling": 0, "damage": 0}
-            
+
             from config import CATALOG 
             for m_id in owned_ids:
                 if m_id in CATALOG:
@@ -268,12 +268,10 @@ class Database:
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (name, description, difficulty, reward, planet, is_boss, cost_money, req_res, req_amt, flight_time, pirate_risk,req_stat_type,req_stat_value))
 
-    def get_missions_by_planet(self, planet_name):
+    def get_missions_by_planet(self, planet):
+        """Отримує всі місії для конкретної планети"""
         with self.connection:
-            self.cursor.execute("""
-                SELECT id, name, description, reward, is_boss_mission, cost_money, flight_time, pirate_risk 
-                FROM missions WHERE planet = %s
-            """, (planet_name,))
+            self.cursor.execute("SELECT * FROM missions WHERE planet = %s", (planet,))
             return self.cursor.fetchall()
 
     def get_mission_by_id(self, mission_id):
@@ -350,6 +348,18 @@ class Database:
                 WHERE upgrade_end_time IS NOT NULL AND upgrade_end_time <= %s
             """, (now,))
             return self.cursor.fetchall()
+    
+    def get_family(self, family_id):
+        """Отримує дані сім'ї за її ID"""
+        with self.connection:
+            self.cursor.execute("SELECT * FROM families WHERE id = %s", (family_id,))
+            return self.cursor.fetchone()
+        
+    def get_mission_by_name(self, name):
+        """Отримує місію за назвою"""
+        with self.connection:
+            self.cursor.execute("SELECT * FROM missions WHERE name = %s", (name,))
+            return self.cursor.fetchone()
 
     def get_family_user_ids(self, family_id):
         with self.connection:

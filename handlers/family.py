@@ -50,27 +50,35 @@ async def process_join_code(message: types.Message, state: FSMContext):
 @router.message(F.text == "🌌 Кабінет сім'ї")
 async def family_info(message: types.Message):
     fid = db.get_user_family(message.from_user.id)
-    if not fid: return
+    if not fid: 
+        await message.answer("Ви не в сім'ї!")
+        return
 
+    family = db.get_family(fid)
+    stats = db.get_ship_total_stats(fid)
     data = db.get_family_resources(fid)
     base = db.get_family_info(fid)
     
     MAX = 10000 
 
     text = (
-        f"🏢 **{base[0]}**\n"
-        f"💰 {data[0]}\n"
-        f"🌍 {data[11]}\n"
+        f"🏠 **Кабінет сім'ї: {family[1]}**\n"
+        f"🔑 **Код для вступу:** `{fid}`\n\n" # Відображення коду
+        f"📊 **Характеристики корабля:**\n"
+        f"🚀 Швидкість: **{stats['speed']}**\n"
+        f"🛡️ Захист: **{stats['armor']}**\n"
+        f"🌬️ Аеро: **{stats['aerodynamics']}**\n"
+        f"🕹️ Маневр: **{stats['handling']}**\n"
+        f"⚔️ Урон: **{stats['damage']}**\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"📦 **Склад ресурсів:**\n\n"
-        f"🔩 Залізо:  **{data[1]}/{MAX}**\n"
-        f"⛽ Паливо:  **{data[2]}/{MAX}**\n"
-        f"🌑 Реголіт: **{data[3]}/{MAX}**\n"
-        f"⚛️ Гелій-3: **{data[4]}/{MAX}**\n"
-        f"💾 Кремній: **{data[5]}/{MAX}**\n"
-        f"🧪 Оксид:   **{data[6]}/{MAX}**\n"
-        f"🌫 Водень:  **{data[7]}/{MAX}**\n"
-        f"🎈 Гелій:   **{data[8]}/{MAX}**"
+        f"📦 **Склад ресурсів:**\n"
+        f"🔩 Залізо: **{data[1]}/{MAX}** | ⛽ Паливо: **{data[2]}/{MAX}**\n"
+        f"🌑 Реголіт: **{data[3]}/{MAX}** | ⚛️ Гелій-3: **{data[4]}/{MAX}**\n"
+        f"💾 Кремній: **{data[5]}/{MAX}** | 🧪 Оксид: **{data[6]}/{MAX}**\n"
+        f"🌫 Водень: **{data[7]}/{MAX}** | 🎈 Гелій: **{data[8]}/{MAX}**\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"💰 Баланс: **{data[0]}** монет\n"
+        f"🌍 Локація: **{data[11]}**"
     )
     await message.answer(text, parse_mode="Markdown")
 

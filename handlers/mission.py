@@ -59,7 +59,7 @@ async def show_missions(message: types.Message):
         risk = m[7]
 
         icon = "💀" if is_boss else "⭐"
-        btn_text = f"{icon} {name} ({flight_time}хв | Ризик {risk}%)"
+        btn_text = f"{icon} {name}"
         builder.button(text=btn_text, callback_data=f"sel_mis:{m_id}")
     
     builder.adjust(1)
@@ -180,3 +180,56 @@ async def confirm_launch(call: types.CallbackQuery):
         f"_Ми повідомимо вас про результати місії._", 
         parse_mode="Markdown"
     )
+
+@router.message(F.text.contains("["))
+async def select_mission(message: types.Message):
+    # Отримуємо чисту назву місії з тексту кнопки (видаляємо частину з характеристиками в дужках)
+    mission_name = message.text.split(" [")[0]
+    mission = db.get_mission_by_name(mission_name)
+    
+    if not mission:
+        await message.answer("Місію не знайдено.")
+        return
+
+    # Отримуємо дані сім'ї та поточні характеристики корабля
+    fid = db.get_user_family(message.from_user.id)
+    if not fid:
+        await message.answer("Ви не входите до жодної сім'ї!")
+        return
+        
+    ship_stats = db.get_ship_total_stats(fid)
+    
+    # Використовуємо правильні індекси згідно з новою структурою таблиці:
+    # 4: reward, 10: flight_time, 12: req_stat_type, 13: req_stat_value
+    reward = mission[4]
+    flight_time = mission[10] 
+    req_type = mission[12]
+    req_val = mission[13]
+    
+    current_val = ship_stats.get(req_type, 0)
+    
+    # Визначаємо статус готовності
+    status = "✅ Готово до вильоту" if current_val >= req_val else "⚠️ Недостатньо потужності"
+    
+    text = (
+        f"🎯 **Місія: {mission[1]}**\n"
+        f"📜 {mission[2]}\n\n"
+        f"💰 Нагорода: **{reward}** монет\n"
+        f"⏱ Час польоту: **{flight_time} хв.**\n"
+        f"━━━━━━━━━━━━━━━━━━━━━\n"
+        f"📊 **Вимоги до систем:**\n"
+        f"🔹 Параметр: **{req_type}**\n"
+        f"📉 Мінімально: **{req_val}**\n"
+        f"🚀 Ваш корабель: **{current_val}**\n"
+        f"📢 Статус: **{status}**\n"
+    )
+    
+    # Додаємо попередження, якщо характеристики занизькі
+    if current_val < req_val:
+        text += f"\n❗ **Увага:** Ризик провалу високий! Покращте корабель в Ангарі."
+
+    # Створюємо кнопку для запуску
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🚀 ПОЧАТИ МІСІЮ", callback_data=f"start_mis_{mission[0]}")
+    
+    await message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")

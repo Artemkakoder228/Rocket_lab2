@@ -3,6 +3,7 @@ import random
 import string
 import datetime
 import os
+from config import CATALOG
 
 # ВАШЕ ПІДКЛЮЧЕННЯ ДО NEON
 # (Я прибрав 'channel_binding=require', бо він іноді викликає помилки в Python, залишив тільки sslmode)
@@ -66,21 +67,22 @@ class Database:
                 )
             """)
 
-            # 3. Місії
             self.cursor.execute("""
-                CREATE TABLE IF NOT EXISTS missions (
-                    id SERIAL PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    description TEXT,
-                    difficulty INTEGER,
-                    reward INTEGER,
-                    planet TEXT DEFAULT 'Earth',
-                    is_boss_mission BOOLEAN DEFAULT FALSE,
-                    cost_money INTEGER DEFAULT 0,
-                    req_res_name TEXT DEFAULT NULL,
-                    req_res_amount INTEGER DEFAULT 0,
-                    flight_time INTEGER DEFAULT 10,
-                    pirate_risk INTEGER DEFAULT 10
+                 CREATE TABLE IF NOT EXISTS missions (
+                     id SERIAL PRIMARY KEY,
+                     name TEXT NOT NULL,
+                     description TEXT,
+                     difficulty INTEGER,
+                     reward INTEGER,
+                     planet TEXT DEFAULT 'Earth',
+                     is_boss_mission BOOLEAN DEFAULT FALSE,
+                     cost_money INTEGER DEFAULT 0,
+                     req_res_name TEXT DEFAULT NULL,
+                     req_res_amount INTEGER DEFAULT 0,
+                     flight_time INTEGER DEFAULT 10,
+                     pirate_risk INTEGER DEFAULT 10,
+                     req_stat_type TEXT DEFAULT 'speed',  -- НОВА КОЛОНКА
+                     req_stat_value INTEGER DEFAULT 0      -- НОВА КОЛОНКА
                 )
             """)
 
@@ -197,6 +199,25 @@ class Database:
         if not self.user_exists(user_id):
             with self.connection:
                 self.cursor.execute("INSERT INTO users (user_id, username) VALUES (%s, %s)", (user_id, username))
+
+    def get_ship_total_stats(self, family_id):
+        """Підраховує сумарні характеристики всіх куплених модулів сім'ї"""
+        with self.connection:
+            self.cursor.execute("SELECT module_id FROM family_upgrades WHERE family_id = %s", (family_id,))
+            owned_ids = [row[0] for row in self.cursor.fetchall()]
+
+            # Початкові характеристики (можна змінити)
+            total = {"speed": 0, "armor": 0, "aerodynamics": 0, "handling": 0, "damage": 0}
+
+            # Імпортуємо CATALOG (переконайтеся, що шлях правильний)
+            from config import CATALOG 
+            for m_id in owned_ids:
+                if m_id in CATALOG:
+                    stats = CATALOG[m_id].get('stats', {})
+                    for s_name, s_val in stats.items():
+                        if s_name in total:
+                            total[s_name] += s_val
+            return total
 
     def get_user_family(self, user_id):
         with self.connection:

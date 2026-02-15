@@ -551,7 +551,7 @@ header {
 .rocket-stage {
     position: relative; 
     width: 260px; 
-    height: auto; /* ЗМІНИТИ з 600px на auto */
+    height: auto;
     display: flex; 
     flex-direction: column; 
     align-items: center;
@@ -563,7 +563,6 @@ header {
 filter: drop-shadow(0 0 10px var(--accent-cyan)) brightness(1.2);
 z-index: 20; }
 
-/* Форми модулів */
 .r-nose { width: 0; height: 0; border-left: 55px solid transparent; border-right: 55px solid transparent; border-bottom: 80px solid #e0e6ed; }
 .r-cabin { width: 110px; height: 80px; background: #d1d9e6; margin-top: -1px; display: flex; justify-content: center; align-items: center; border-right: 3px solid #999; }
 .window { width: 40px; height: 40px; background: #00f3ff; border-radius: 50%; border: 3px solid #333; box-shadow: inset 0 0 10px #000; }
@@ -572,7 +571,6 @@ z-index: 20; }
 .r-body { width: 110px; height: 200px; background: linear-gradient(90deg, #ccc, #fff, #ccc); display: flex; justify-content: center; align-items: center; position: relative; }
 .logo-print { writing-mode: vertical-rl; transform: rotate(180deg); font-family: var(--font-ui); font-weight: bold; color: #222; font-size: 1.2rem; opacity: 0.7; letter-spacing: 3px; }
 
-/* Сонячні панелі */
 .solar-array { position: absolute; top: 160px; width: 100%; display: flex; justify-content: center; z-index: -2; }
 .solar-left, .solar-right { width: 80px; height: 40px; background: #1a237e; border: 1px solid #4fc3f7; background-image: linear-gradient(#4fc3f7 1px, transparent 1px), linear-gradient(90deg, #4fc3f7 1px, transparent 1px); background-size: 10px 10px; transition: transform 0.5s; }
 .solar-left { transform: translateX(-60px) skewY(10deg); transform-origin: right; }
@@ -580,13 +578,11 @@ z-index: 20; }
 .solar-left:hover { transform: translateX(-65px) skewY(0deg); } 
 .solar-right:hover { transform: translateX(65px) skewY(0deg); }
 
-/* Бустери */
 .boosters-container { position: absolute; top: 10px; width: 100%; height: 100%; pointer-events: none; }
 .booster { position: absolute; top: 0; width: 35px; height: 190px; background: #546e7a; border-radius: 10px 10px 5px 5px; border-right: 2px solid #37474f; pointer-events: all; box-shadow: 5px 0 10px rgba(0,0,0,0.5); }
 .left-booster { left: -40px; } .right-booster { right: -40px; }
 .booster-flame { position: absolute; bottom: -40px; left: 5px; width: 25px; height: 50px; background: linear-gradient(to bottom, #ff9800, transparent); border-radius: 50%; filter: blur(4px); animation: flameFlicker 0.1s infinite alternate; }
 
-/* Крила та Двигун */
 .r-fins { position: absolute; bottom: 10px; width: 240px; height: 60px; z-index: -5; }
 .fin-left, .fin-right { position: absolute; width: 0; height: 0; border-bottom: 60px solid #78909c; }
 .fin-left { left: 0; border-left: 60px solid transparent; } .fin-right { right: 0; border-right: 60px solid transparent; }

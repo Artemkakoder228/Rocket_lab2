@@ -57,46 +57,38 @@ async def check_upg(bot):
 
 
 async def check_mis(bot):
-    # Те саме для місій
     missions = db.get_expired_missions()
-    if missions:
-        print(f"Found expired missions: {missions}")
-
     for row in missions:
         fid, mid, lid, planet = row
-        print(f"🚀 Завершуємо місію для сім'ї {fid}...")
-
         db.clear_mission_timer(fid)
-        m = db.get_mission_by_id(mid)
         
-        if not m:
-            print(f"❌ Помилка: Місію ID {mid} не знайдено в БД!")
-            continue
+        m_data = db.get_mission_by_id(mid)
+        # Припустимо, req_stat_type це індекс 12, а req_stat_value індекс 13 (перевірте порядок у DB)
+        req_type = m_data[12]
+        req_val = m_data[13]
+        reward = m_data[4]
+
+        ship_stats = db.get_ship_total_stats(fid)
+        current_val = ship_stats.get(req_type, 0)
+        
+        diff = req_val - current_val
+        success = True
+        
+        if diff > 0:
+            # Логіка ризику: якщо не вистачає статів
+            fail_chance = 0
+            if diff <= 50: fail_chance = 20
+            elif diff <= 100: fail_chance = 50
+            else: fail_chance = 90 # Провал, якщо різниця > 100
+
+            if random.randint(1, 100) <= fail_chance:
+                success = False
+
+        if success:
+            db.update_balance(fid, reward)
+            msg = f"✅ **МІСІЯ УСПІШНА!**\n💰 Нагорода: {reward} монет."
+            # ... логіка відкриття планет
         else:
-            # Успішна місія
-            db.update_balance(fid, m[4])
-            msg = f"✅ **МІСІЯ ЗАВЕРШЕНА!**\n💰 Прибуток: **{m[4]}**"
-
-            # ЛОГІКА ВІДКРИТТЯ ПЛАНЕТ
-            # m[6] - це is_boss_mission
-            # m[5] - planet (звідки летіли)
-            
-            if m[6] and PLANET_NEXT.get(m[5]):
-                next_p = PLANET_NEXT[m[5]]
-                
-                # Перевіряємо, чи вже відкрита ця планета
-                unlocked = db.get_unlocked_planets(fid)
-                
-                if next_p not in unlocked:
-                    # Розблоковуємо нову планету!
-                    db.unlock_planet(fid, next_p)
-                    
-                    msg += (
-                        f"\n\n🎉 **ВІДКРИТО НОВИЙ СЕКТОР!**\n"
-                        f"Ви отримали координати планети **{next_p}**.\n"
-                        f"Використовуйте меню '🚀 Навігація' для перельоту."
-                    )
-                else:
-                    msg += "\n_(Цей маршрут вже розвідано)_"
-
-            await notify(bot, fid, msg) # Визначаємо результат (успіх чи провал) - для тесту просто рандом
+            msg = f"💥 **КАТАСТРОФА!**\nКорабель не витримав навантаження ({req_type}: {current_val}/{req_val}). Місію провалено."
+        
+        await notify(bot, fid, msg)

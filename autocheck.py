@@ -1,5 +1,6 @@
 import asyncio
 import random
+import httpx
 from database import Database
 from aiogram import Bot
 
@@ -55,6 +56,23 @@ async def check_upg(bot):
         # 2. Надсилаємо сповіщення
         await notify(bot, fid, "🏭 **БУДІВНИЦТВО ЗАВЕРШЕНО!**\nШахту успішно модернізовано.")
 # autocheck.py
+
+import httpx
+import asyncio
+
+async def keep_alive_ping():
+    url = "https://rocket-lab2.onrender.com"
+    async with httpx.AsyncClient() as client:
+        while True:
+            try:
+                # Надсилаємо GET-запит на головну сторінку
+                response = await client.get(url)
+                print(f"✅ Ping: {url} | Статус: {response.status_code}")
+            except Exception as e:
+                print(f"❌ Помилка пінгу: {e}")
+            
+            # Чекаємо 10 хвилин (600 секунд), щоб Render не встиг вимкнути сервіс
+            await asyncio.sleep(600)
 
 async def check_mis(bot):
     missions = db.get_expired_missions()

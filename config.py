@@ -1,4 +1,4 @@
-BOT_TOKEN = "8578542989:AAFsaR62n5S3Wkh9RW4Ljdh98HuNLQd96OQ"
+BOT_TOKEN = "8464831592:AAED9Lo3plVhAAX-vxoMds3_tapTfsE1L-o"
 WEB_APP_URL = "https://rocket-lab2.onrender.com"
 WEB_APP_URL1 = "https://rocket-lab2.onrender.com/tree_Earth.html"
 CATALOG = {

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
+from middlewares import ThrottlingMiddleware
 from aiogram.types import BotCommand
 from config import BOT_TOKEN
 from handlers import navigation, start, family, mission, shop, mining, admin, games, pvp, bonus, webapp
@@ -16,6 +17,9 @@ async def main():
 
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
+
+    dp.message.middleware(ThrottlingMiddleware(rate_limit=1.0))
+    dp.callback_query.middleware(ThrottlingMiddleware(rate_limit=1.0))
 
     # Підключення роутерів
     dp.include_router(start.router)
